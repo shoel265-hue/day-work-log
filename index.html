@@ -784,7 +784,7 @@
         </div>
     </div>
 
-    <!-- 2. 소방 업무일지 -->
+    <!-- 2. 소방 업무일지 (소방팀 ID 접두사를 sobang으로 복원하여 완벽 연동) -->
     <div class="log-section-block">
         <div class="section-title">
             <span>소방 업무일지</span>
@@ -1355,7 +1355,6 @@
         totalInput.value = hasValue ? sum : '';
     }
 
-    // 💡 깃허브 HTML 파일 자체에는 인원 현황 데이터를 전혀 저장하지 않고, 오직 구글 시트(GAS)로만 전송하여 독립 저장
     function saveReportData() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) {
@@ -1398,7 +1397,7 @@
             rotation: rotationRowsData
         };
 
-        // 1. 인원 현황 및 기본 메타데이터 구글 시트 독립 저장 요청 (깃허브 미저장)
+        // 1. 인원 현황 전용 고유 키로 구글 시트 독립 저장
         const personnelPayload = {
             action: "save",
             workDate: workDate,
@@ -1414,7 +1413,7 @@
             body: JSON.stringify(personnelPayload)
         }).catch(err => console.error("인원현황 저장 오류:", err));
 
-        // 2. 각 팀별 업무일지 및 사진 데이터 저장 전송 (기존 연동 유지)
+        // 2. 각 팀별 업무일지 및 사진 데이터 전송 (소방팀은 sobang 키 사용으로 완벽 연동)
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         let saveCount = 0;
 
@@ -1453,7 +1452,6 @@
         });
     }
 
-    // 💡 구글 서버(GAS)에서만 인원 현황과 팀별 일지를 불러오도록 수정 (로컬 저장소 조회 코드 완전 배제)
     function loadAllTeamsDataFromServer() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
@@ -1478,20 +1476,17 @@
         }
         document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
 
-        // 구글 서버(GAS)에서만 데이터를 조회하여 반영
         fetch(`${GAS_WEB_APP_URL}?workDate=${workDate}`)
         .then(res => res.json())
         .then(res => {
             if (res.status === "success" && res.data) {
-                // 구글 시트에 독립 저장된 인원 현황 데이터 반영
                 if (res.data["personnel_status"] && res.data["personnel_status"].contentData) {
                     try {
                         const metaJson = JSON.parse(res.data["personnel_status"].contentData.logContent);
                         applyPersonnelMeta(metaJson);
-                    } catch(e) { /* 파싱 오류 무시 */ }
+                    } catch(e) {}
                 }
 
-                // 각 팀 업무일지 및 사진 반영
                 teamKeys.forEach(key => {
                     if (res.data[key]) {
                         const teamData = res.data[key];
@@ -1499,17 +1494,6 @@
                         if (teamData.contentData) {
                             let rawContent = teamData.contentData.logContent !== undefined ? teamData.contentData.logContent : teamData.contentData.workLogContent;
                             
-                            // 하위 호환성 처리
-                            if (key === "sobang" && rawContent && rawContent.startsWith("{")) {
-                                try {
-                                    const parsed = JSON.parse(rawContent);
-                                    if (parsed.reportMeta && !res.data["personnel_status"]) {
-                                        applyPersonnelMeta(parsed.reportMeta);
-                                    }
-                                    rawContent = parsed.logContent || "";
-                                } catch(e) {}
-                            }
-
                             const textarea = document.getElementById(`log-${key}`);
                             if (textarea && rawContent !== undefined) {
                                 textarea.value = rawContent;
