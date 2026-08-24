@@ -785,41 +785,41 @@
         </div>
     </div>
 
-    <!-- 2. 소방 업무일지 (통합보고서 전용 고유 키 'report_sobang'을 사용하여 단독 파일과 완벽히 충돌 방지) -->
+    <!-- 2. 소방 업무일지 (단독 파일과 동일한 sobang 키 사용 및 JSON 포맷 방어 적용) -->
     <div class="log-section-block">
         <div class="section-title">
             <span>소방 업무일지</span>
-            <button class="btn-photo" onclick="clickTeamPhotoButton('report_sobang')">사진</button>
-            <input type="file" id="photo-report_sobang-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
+            <button class="btn-photo" onclick="clickTeamPhotoButton('sobang')">사진</button>
+            <input type="file" id="photo-sobang-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
-        <table class="data-table" id="table-log-report_sobang">
+        <table class="data-table" id="table-log-sobang">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-report_sobang" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="소방 업무 내역을 입력하세요."></textarea>
-                        <div id="print-log-report_sobang" class="print-log-div"></div>
+                        <textarea id="log-sobang" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="소방 업무 내역을 입력하세요."></textarea>
+                        <div id="print-log-sobang" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
-        <div class="photo-container-row empty-photo-row" id="photo-row-report_sobang">
-            <div class="photo-card-box" onclick="handlePhotoCellClick('report_sobang', 1)" id="td-photo-report_sobang-1">
+        <div class="photo-container-row empty-photo-row" id="photo-row-sobang">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('sobang', 1)" id="td-photo-sobang-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
-                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('report_sobang', 1);">✕</div>
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('sobang', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="handlePhotoCellClick('report_sobang', 2)" id="td-photo-report_sobang-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('sobang', 2)" id="td-photo-sobang-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
-                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('report_sobang', 2);">✕</div>
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('sobang', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="handlePhotoCellClick('report_sobang', 3)" id="td-photo-report_sobang-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('sobang', 3)" id="td-photo-sobang-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
-                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('report_sobang', 3);">✕</div>
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('sobang', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -1303,7 +1303,7 @@
     }
 
     window.onbeforeprint = function() {
-        const logIds = ["jumgeom", "report_sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
+        const logIds = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         
         for (let i = 1; i <= 10; i++) {
             const textarea = document.getElementById("acc-" + i);
@@ -1414,8 +1414,8 @@
             body: JSON.stringify(personnelPayload)
         }).catch(err => console.error("인원현황 저장 오류:", err));
 
-        // 2. 각 팀별 업무일지 및 사진 데이터 전송 (소방팀은 report_sobang 키를 사용하여 단독 파일과 완벽 분리)
-        const teamKeys = ["jumgeom", "report_sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
+        // 2. 각 팀별 업무일지 및 사진 데이터 전송
+        const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         let saveCount = 0;
 
         teamKeys.forEach(team => {
@@ -1457,7 +1457,7 @@
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
 
-        const teamKeys = ["jumgeom", "report_sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
+        const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         
         teamKeys.forEach(key => {
             const textarea = document.getElementById(`log-${key}`);
@@ -1489,18 +1489,22 @@
                 }
 
                 teamKeys.forEach(key => {
-                    // 구형 'sobang' 데이터와 신형 'report_sobang' 데이터를 모두 호환하여 읽어옴
-                    let serverKey = key;
-                    if (key === "report_sobang" && !res.data["report_sobang"] && res.data["sobang"]) {
-                        serverKey = "sobang";
-                    }
-
-                    if (res.data[serverKey]) {
-                        const teamData = res.data[serverKey];
+                    if (res.data[key]) {
+                        const teamData = res.data[key];
 
                         if (teamData.contentData) {
                             let rawContent = teamData.contentData.logContent !== undefined ? teamData.contentData.logContent : teamData.contentData.workLogContent;
                             
+                            // ★ 핵심 수정: 소방 단독 파일(index.html)이 JSON 형태로 감싸서 저장한 데이터(4444 포함)를 완벽하게 해제하여 가져오도록 보완
+                            if (key === "sobang" && rawContent && typeof rawContent === 'string' && rawContent.trim().startsWith("{")) {
+                                try {
+                                    const parsed = JSON.parse(rawContent);
+                                    if (parsed.logContent !== undefined) {
+                                        rawContent = parsed.logContent;
+                                    }
+                                } catch(e) {}
+                            }
+
                             const textarea = document.getElementById(`log-${key}`);
                             if (textarea && rawContent !== undefined) {
                                 textarea.value = rawContent;
