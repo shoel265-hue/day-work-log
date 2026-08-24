@@ -1355,7 +1355,7 @@
         totalInput.value = hasValue ? sum : '';
     }
 
-    // ★ 구글 앱스 스크립트(GAS)를 통해 인원현황까지 구글 시트에 완벽 저장되도록 래핑한 함수 ★
+    // 💡 1. 깃허브 페이지와 홈페이지 양쪽 모두에서 인원 현황과 일지 데이터가 확실하게 연동되도록 저장하는 함수
     function saveReportData() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) {
@@ -1363,7 +1363,6 @@
             return;
         }
 
-        // 1. 인원 현황 표 데이터 수집 (5개 행)
         const personnelRowsData = [];
         document.querySelectorAll("#table-personnel .calc-row").forEach((row) => {
             const inputs = row.querySelectorAll("input");
@@ -1372,13 +1371,11 @@
             personnelRowsData.push(rowValues);
         });
 
-        // 2. 사고 내용 텍스트 수집 (10개)
         const accidentTexts = {};
         for (let i = 1; i <= 10; i++) {
             accidentTexts[`acc_${i}`] = document.getElementById(`acc-${i}`).value || "";
         }
 
-        // 3. 순환 근무자 현황 데이터 수집 (4개 행)
         const rotationRowsData = [];
         document.querySelectorAll("#table-rotation tbody tr").forEach((row) => {
             rotationRowsData.push({
@@ -1401,6 +1398,9 @@
             rotation: rotationRowsData
         };
 
+        // 브라우저 간(홈페이지 iframe 및 단독 주소 모두 대응) 데이터 유지를 위해 localStorage에 백업 저장
+        localStorage.setItem(`report_meta_${workDate}`, JSON.stringify(reportMeta));
+
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         let saveCount = 0;
 
@@ -1413,7 +1413,6 @@
                 photos.push(img && img.style.display !== "none" ? img.src : "");
             }
 
-            // 💡 소방팀(sobang) 데이터 전송 시 인원현황(reportMeta)을 내용(logContent)에 함께 담아서 전송
             let contentToSend = logContent;
             if (team === "sobang") {
                 contentToSend = JSON.stringify({
@@ -1439,7 +1438,7 @@
             .then(() => {
                 saveCount++;
                 if (saveCount === teamKeys.length) {
-                    alert("인원 현황 및 모든 팀의 업무일지가 구글 시트에 안전하게 저장되었습니다!");
+                    alert("인원 현황 및 모든 팀의 일지 데이터가 구글 서버와 브라우저에 안전하게 저장되었습니다!");
                 }
             })
             .catch(err => {
@@ -1448,7 +1447,7 @@
         });
     }
 
-    // ★ 구글 시트에서 인원현황 데이터를 불러와 화면에 복원하는 함수 ★
+    // 💡 2. 구글 서버와 로컬 저장소를 동시에 조회하여 인원 현황 데이터를 완벽하게 복원하는 함수
     function loadAllTeamsDataFromServer() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
@@ -1466,7 +1465,6 @@
             }
         });
 
-        // 인원현황 및 사고내용 초기화
         document.querySelectorAll("#table-personnel .calc-row input").forEach(inp => inp.value = "");
         for (let i = 1; i <= 10; i++) {
             const accArea = document.getElementById(`acc-${i}`);
@@ -1474,6 +1472,58 @@
         }
         document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
 
+        // 1순위: 로컬 스토리지에서 먼저 인원현황 불러오기 시도 (홈페이지 iframe 환경 대응)
+        const savedMetaStr = localStorage.getItem(`report_meta_${workDate}`);
+        if (savedMetaStr) {
+            try {
+                const meta = JSON.parse(savedMetaStr);
+                if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
+                if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
+                if (meta.userName) document.getElementById("user-name").value = meta.userName;
+                if (meta.dept) document.getElementById("dept-select").value = meta.dept;
+
+                if (meta.personnel && Array.isArray(meta.personnel)) {
+                    meta.personnel.forEach((rowVals, rIdx) => {
+                        const rowTr = document.querySelector(`#table-personnel .calc-row[data-row="${rIdx}"]`);
+                        if (rowTr) {
+                            const inputs = rowTr.querySelectorAll("input");
+                            rowVals.forEach((val, vIdx) => {
+                                if (inputs[vIdx]) {
+                                    inputs[vIdx].value = val;
+                                    if (vIdx < inputs.length - 1) calcRowTotal(inputs[vIdx]);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                if (meta.accidents) {
+                    for (let i = 1; i <= 10; i++) {
+                        const accArea = document.getElementById(`acc-${i}`);
+                        if (accArea && meta.accidents[`acc_${i}`]) {
+                            accArea.value = meta.accidents[`acc_${i}`];
+                            autoResizeTextarea(accArea);
+                        }
+                    }
+                }
+
+                if (meta.rotation && Array.isArray(meta.rotation)) {
+                    meta.rotation.forEach((rotObj, rIdx) => {
+                        const rowTr = document.querySelector(`#table-rotation tbody tr[data-rot="${rIdx}"]`);
+                        if (rowTr) {
+                            if (rowTr.querySelector(".rot-loc")) rowTr.querySelector(".rot-loc").value = rotObj.loc || "";
+                            if (rowTr.querySelector(".rot-saryeong")) rowTr.querySelector(".rot-saryeong").value = rotObj.saryeong || "";
+                            if (rowTr.querySelector(".rot-bangjae")) rowTr.querySelector(".rot-bangjae").value = rotObj.bangjae || "";
+                            if (rowTr.querySelector(".rot-jeonqi")) rowTr.querySelector(".rot-jeonqi").value = rotObj.jeonqi || "";
+                            if (rowTr.querySelector(".rot-seolbi")) rowTr.querySelector(".rot-seolbi").value = rotObj.seolbi || "";
+                            if (rowTr.querySelector(".rot-total")) rowTr.querySelector(".rot-total").value = rotObj.total || "";
+                        }
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // 2순위: 구글 서버(GAS)에서 일지 및 인원 데이터 불러오기
         fetch(`${GAS_WEB_APP_URL}?workDate=${workDate}`)
         .then(res => res.json())
         .then(res => {
@@ -1485,7 +1535,6 @@
                         if (teamData.contentData) {
                             let rawContent = teamData.contentData.logContent !== undefined ? teamData.contentData.logContent : teamData.contentData.workLogContent;
                             
-                            // 💡 소방팀 데이터에 포함된 인원현황(reportMeta) 파싱 및 복원
                             if (key === "sobang" && rawContent) {
                                 try {
                                     const parsed = JSON.parse(rawContent);
