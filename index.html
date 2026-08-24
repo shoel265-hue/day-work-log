@@ -29,7 +29,7 @@
       }, true);
     </script>
 
-    <!-- 파이어베이스 SDK 연동 (비밀번호 인증용) -->
+    <!-- 파이어베이스 SDK 연동 -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -1118,7 +1118,7 @@
         }
     });
 
-    // ★ 기존 방식: 배포한 Google Apps Script Web App URL ★
+    // ★ 배포한 Google Apps Script Web App URL ★
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxRlUq3rsH_WK9OlOp55ha9ishxWQXZJZo03qqsBtq2M7GkUO5hTxxRqnzKB06tdZs/exec"; 
 
     let activePhotoTarget = { teamKey: '', index: 0 };
@@ -1355,13 +1355,54 @@
         totalInput.value = hasValue ? sum : '';
     }
 
-    // ★ 기존 구글 앱스 스크립트(GAS) 저장 방식 복원 ★
+    // ★ 인원현황 등 공통 데이터를 세션스토리지(로컬 임시 저장)와 연동하여 유지되도록 보완한 저장 함수 ★
     function saveReportData() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) {
             alert("일자를 입력하세요.");
             return;
         }
+
+        // 1. 인원 현황 표 데이터 수집 (5개 행)
+        const personnelRowsData = [];
+        document.querySelectorAll("#table-personnel .calc-row").forEach((row) => {
+            const inputs = row.querySelectorAll("input");
+            const rowValues = [];
+            inputs.forEach(inp => rowValues.push(inp.value));
+            personnelRowsData.push(rowValues);
+        });
+
+        // 2. 사고 내용 텍스트 수집 (10개)
+        const accidentTexts = {};
+        for (let i = 1; i <= 10; i++) {
+            accidentTexts[`acc_${i}`] = document.getElementById(`acc-${i}`).value || "";
+        }
+
+        // 3. 순환 근무자 현황 데이터 수집 (4개 행)
+        const rotationRowsData = [];
+        document.querySelectorAll("#table-rotation tbody tr").forEach((row) => {
+            rotationRowsData.push({
+                loc: row.querySelector(".rot-loc")?.value || "",
+                saryeong: row.querySelector(".rot-saryeong")?.value || "",
+                bangjae: row.querySelector(".rot-bangjae")?.value || "",
+                jeonqi: row.querySelector(".rot-jeonqi")?.value || "",
+                seolbi: row.querySelector(".rot-seolbi")?.value || "",
+                total: row.querySelector(".rot-total")?.value || ""
+            });
+        });
+
+        const reportMeta = {
+            statusCode: document.getElementById("status-select").value,
+            userCode: document.getElementById("user-code").value,
+            userName: document.getElementById("user-name").value,
+            dept: document.getElementById("dept-select").value,
+            personnel: personnelRowsData,
+            accidents: accidentTexts,
+            rotation: rotationRowsData
+        };
+
+        // 브라우저 로컬 저장소에도 날짜별로 인원현황을 임시 백업하여 새로고침 시 유지되도록 처리
+        localStorage.setItem(`report_meta_${workDate}`, JSON.stringify(reportMeta));
 
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         let saveCount = 0;
@@ -1392,7 +1433,7 @@
             .then(() => {
                 saveCount++;
                 if (saveCount === teamKeys.length) {
-                    alert("모든 팀의 일지 및 사진 데이터가 서버에 업데이트되었습니다!");
+                    alert("모든 팀의 일지, 사진 및 인원 현황 데이터가 안전하게 저장되었습니다!");
                 }
             })
             .catch(err => {
@@ -1401,7 +1442,7 @@
         });
     }
 
-    // ★ 기존 구글 앱스 스크립트(GAS) 불러오기 방식 복원 ★
+    // ★ 인원현황 데이터를 로컬 스토리지에서 함께 불러오도록 보완한 불러오기 함수 ★
     function loadAllTeamsDataFromServer() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
@@ -1418,6 +1459,65 @@
                 removePhotoCell(key, i);
             }
         });
+
+        // 인원현황 및 사고내용 초기화
+        document.querySelectorAll("#table-personnel .calc-row input").forEach(inp => inp.value = "");
+        for (let i = 1; i <= 10; i++) {
+            const accArea = document.getElementById(`acc-${i}`);
+            if (accArea) { accArea.value = ""; autoResizeTextarea(accArea); }
+        }
+        document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
+
+        // 로컬에 저장된 인원현황 메타데이터 복원
+        const savedMetaStr = localStorage.getItem(`report_meta_${workDate}`);
+        if (savedMetaStr) {
+            try {
+                const meta = JSON.parse(savedMetaStr);
+                if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
+                if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
+                if (meta.userName) document.getElementById("user-name").value = meta.userName;
+                if (meta.dept) document.getElementById("dept-select").value = meta.dept;
+
+                if (meta.personnel && Array.isArray(meta.personnel)) {
+                    meta.personnel.forEach((rowVals, rIdx) => {
+                        const rowTr = document.querySelector(`#table-personnel .calc-row[data-row="${rIdx}"]`);
+                        if (rowTr) {
+                            const inputs = rowTr.querySelectorAll("input");
+                            rowVals.forEach((val, vIdx) => {
+                                if (inputs[vIdx]) {
+                                    inputs[vIdx].value = val;
+                                    if (vIdx < inputs.length - 1) calcRowTotal(inputs[vIdx]);
+                                }
+                            });
+                        }
+                    });
+                }
+
+                if (meta.accidents) {
+                    for (let i = 1; i <= 10; i++) {
+                        const accArea = document.getElementById(`acc-${i}`);
+                        if (accArea && meta.accidents[`acc_${i}`]) {
+                            accArea.value = meta.accidents[`acc_${i}`];
+                            autoResizeTextarea(accArea);
+                        }
+                    }
+                }
+
+                if (meta.rotation && Array.isArray(meta.rotation)) {
+                    meta.rotation.forEach((rotObj, rIdx) => {
+                        const rowTr = document.querySelector(`#table-rotation tbody tr[data-rot="${rIdx}"]`);
+                        if (rowTr) {
+                            if (rowTr.querySelector(".rot-loc")) rowTr.querySelector(".rot-loc").value = rotObj.loc || "";
+                            if (rowTr.querySelector(".rot-saryeong")) rowTr.querySelector(".rot-saryeong").value = rotObj.saryeong || "";
+                            if (rowTr.querySelector(".rot-bangjae")) rowTr.querySelector(".rot-bangjae").value = rotObj.bangjae || "";
+                            if (rowTr.querySelector(".rot-jeonqi")) rowTr.querySelector(".rot-jeonqi").value = rotObj.jeonqi || "";
+                            if (rowTr.querySelector(".rot-seolbi")) rowTr.querySelector(".rot-seolbi").value = rotObj.seolbi || "";
+                            if (rowTr.querySelector(".rot-total")) rowTr.querySelector(".rot-total").value = rotObj.total || "";
+                        }
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
 
         fetch(`${GAS_WEB_APP_URL}?workDate=${workDate}`)
         .then(res => res.json())
