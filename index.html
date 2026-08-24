@@ -1355,7 +1355,7 @@
         totalInput.value = hasValue ? sum : '';
     }
 
-    // 💡 1. 깃허브 페이지와 홈페이지 양쪽 모두에서 인원 현황과 일지 데이터가 확실하게 연동되도록 저장하는 함수
+    // 💡 인원 현황 등 메타데이터를 구글 시트의 독립된 항목(team: "personnel_status")으로 저장 및 각 팀 일지는 기존처럼 연동 유지
     function saveReportData() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) {
@@ -1398,9 +1398,26 @@
             rotation: rotationRowsData
         };
 
-        // 브라우저 간(홈페이지 iframe 및 단독 주소 모두 대응) 데이터 유지를 위해 localStorage에 백업 저장
+        // 로컬 백업 저장
         localStorage.setItem(`report_meta_${workDate}`, JSON.stringify(reportMeta));
 
+        // 1. 인원 현황 및 기본 메타데이터 독립 저장 요청 전송
+        const personnelPayload = {
+            action: "save",
+            workDate: workDate,
+            team: "personnel_status", // 💡 구글 시트에 독립 저장될 키
+            contentData: { logContent: JSON.stringify(reportMeta) },
+            photos: []
+        };
+
+        fetch(GAS_WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(personnelPayload)
+        }).catch(err => console.error("인원현황 저장 오류:", err));
+
+        // 2. 각 팀별 업무일지 및 사진 데이터 저장 전송 (기존 연동 유지)
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         let saveCount = 0;
 
@@ -1413,19 +1430,11 @@
                 photos.push(img && img.style.display !== "none" ? img.src : "");
             }
 
-            let contentToSend = logContent;
-            if (team === "sobang") {
-                contentToSend = JSON.stringify({
-                    logContent: logContent,
-                    reportMeta: reportMeta
-                });
-            }
-
             const payload = {
                 action: "save",
                 workDate: workDate,
                 team: team,
-                contentData: { logContent: contentToSend },
+                contentData: { logContent: logContent },
                 photos: photos
             };
 
@@ -1438,16 +1447,16 @@
             .then(() => {
                 saveCount++;
                 if (saveCount === teamKeys.length) {
-                    alert("인원 현황 및 모든 팀의 일지 데이터가 구글 서버와 브라우저에 안전하게 저장되었습니다!");
+                    alert("인원 현황(독립 저장) 및 모든 팀의 일지 데이터가 안전하게 저장되었습니다!");
                 }
             })
             .catch(err => {
-                console.error("저장 오류:", err);
+                console.error("팀 일지 저장 오류:", err);
             });
         });
     }
 
-    // 💡 2. 구글 서버와 로컬 저장소를 동시에 조회하여 인원 현황 데이터를 완벽하게 복원하는 함수
+    // 💡 구글 서버 및 로컬에서 인원 현황(독립 데이터)과 팀별 일지를 각각 불러와 복원하는 함수
     function loadAllTeamsDataFromServer() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
@@ -1472,62 +1481,28 @@
         }
         document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
 
-        // 1순위: 로컬 스토리지에서 먼저 인원현황 불러오기 시도 (홈페이지 iframe 환경 대응)
+        // 1순위: 로컬 스토리지에서 인원현황 먼저 복원 시도
         const savedMetaStr = localStorage.getItem(`report_meta_${workDate}`);
         if (savedMetaStr) {
             try {
-                const meta = JSON.parse(savedMetaStr);
-                if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
-                if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
-                if (meta.userName) document.getElementById("user-name").value = meta.userName;
-                if (meta.dept) document.getElementById("dept-select").value = meta.dept;
-
-                if (meta.personnel && Array.isArray(meta.personnel)) {
-                    meta.personnel.forEach((rowVals, rIdx) => {
-                        const rowTr = document.querySelector(`#table-personnel .calc-row[data-row="${rIdx}"]`);
-                        if (rowTr) {
-                            const inputs = rowTr.querySelectorAll("input");
-                            rowVals.forEach((val, vIdx) => {
-                                if (inputs[vIdx]) {
-                                    inputs[vIdx].value = val;
-                                    if (vIdx < inputs.length - 1) calcRowTotal(inputs[vIdx]);
-                                }
-                            });
-                        }
-                    });
-                }
-
-                if (meta.accidents) {
-                    for (let i = 1; i <= 10; i++) {
-                        const accArea = document.getElementById(`acc-${i}`);
-                        if (accArea && meta.accidents[`acc_${i}`]) {
-                            accArea.value = meta.accidents[`acc_${i}`];
-                            autoResizeTextarea(accArea);
-                        }
-                    }
-                }
-
-                if (meta.rotation && Array.isArray(meta.rotation)) {
-                    meta.rotation.forEach((rotObj, rIdx) => {
-                        const rowTr = document.querySelector(`#table-rotation tbody tr[data-rot="${rIdx}"]`);
-                        if (rowTr) {
-                            if (rowTr.querySelector(".rot-loc")) rowTr.querySelector(".rot-loc").value = rotObj.loc || "";
-                            if (rowTr.querySelector(".rot-saryeong")) rowTr.querySelector(".rot-saryeong").value = rotObj.saryeong || "";
-                            if (rowTr.querySelector(".rot-bangjae")) rowTr.querySelector(".rot-bangjae").value = rotObj.bangjae || "";
-                            if (rowTr.querySelector(".rot-jeonqi")) rowTr.querySelector(".rot-jeonqi").value = rotObj.jeonqi || "";
-                            if (rowTr.querySelector(".rot-seolbi")) rowTr.querySelector(".rot-seolbi").value = rotObj.seolbi || "";
-                            if (rowTr.querySelector(".rot-total")) rowTr.querySelector(".rot-total").value = rotObj.total || "";
-                        }
-                    });
-                }
+                applyPersonnelMeta(JSON.parse(savedMetaStr));
             } catch(e) { console.error(e); }
         }
 
-        // 2순위: 구글 서버(GAS)에서 일지 및 인원 데이터 불러오기
+        // 2순위: 구글 서버(GAS)에서 독립 저장된 인원 현황 및 각 팀 일지 불러오기
         fetch(`${GAS_WEB_APP_URL}?workDate=${workDate}`)
         .then(res => res.json())
         .then(res => {
             if (res.status === "success" && res.data) {
+                // 독립 저장된 인원 현황 데이터 반영 우선 처리
+                if (res.data["personnel_status"] && res.data["personnel_status"].contentData) {
+                    try {
+                        const metaJson = JSON.parse(res.data["personnel_status"].contentData.logContent);
+                        applyPersonnelMeta(metaJson);
+                    } catch(e) { /* 파싱 오류 무시 */ }
+                }
+
+                // 각 팀 업무일지 및 사진 반영
                 teamKeys.forEach(key => {
                     if (res.data[key]) {
                         const teamData = res.data[key];
@@ -1535,58 +1510,15 @@
                         if (teamData.contentData) {
                             let rawContent = teamData.contentData.logContent !== undefined ? teamData.contentData.logContent : teamData.contentData.workLogContent;
                             
-                            if (key === "sobang" && rawContent) {
+                            // 하위 호환성 (예전 소방 일지에 묶여 있던 데이터 처리)
+                            if (key === "sobang" && rawContent && rawContent.startsWith("{")) {
                                 try {
                                     const parsed = JSON.parse(rawContent);
-                                    if (parsed.reportMeta) {
-                                        const meta = parsed.reportMeta;
-                                        if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
-                                        if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
-                                        if (meta.userName) document.getElementById("user-name").value = meta.userName;
-                                        if (meta.dept) document.getElementById("dept-select").value = meta.dept;
-
-                                        if (meta.personnel && Array.isArray(meta.personnel)) {
-                                            meta.personnel.forEach((rowVals, rIdx) => {
-                                                const rowTr = document.querySelector(`#table-personnel .calc-row[data-row="${rIdx}"]`);
-                                                if (rowTr) {
-                                                    const inputs = rowTr.querySelectorAll("input");
-                                                    rowVals.forEach((val, vIdx) => {
-                                                        if (inputs[vIdx]) {
-                                                            inputs[vIdx].value = val;
-                                                            if (vIdx < inputs.length - 1) calcRowTotal(inputs[vIdx]);
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
-
-                                        if (meta.accidents) {
-                                            for (let i = 1; i <= 10; i++) {
-                                                const accArea = document.getElementById(`acc-${i}`);
-                                                if (accArea && meta.accidents[`acc_${i}`]) {
-                                                    accArea.value = meta.accidents[`acc_${i}`];
-                                                    autoResizeTextarea(accArea);
-                                                }
-                                            }
-                                        }
-
-                                        if (meta.rotation && Array.isArray(meta.rotation)) {
-                                            meta.rotation.forEach((rotObj, rIdx) => {
-                                                const rowTr = document.querySelector(`#table-rotation tbody tr[data-rot="${rIdx}"]`);
-                                                if (rowTr) {
-                                                    if (rowTr.querySelector(".rot-loc")) rowTr.querySelector(".rot-loc").value = rotObj.loc || "";
-                                                    if (rowTr.querySelector(".rot-saryeong")) rowTr.querySelector(".rot-saryeong").value = rotObj.saryeong || "";
-                                                    if (rowTr.querySelector(".rot-bangjae")) rowTr.querySelector(".rot-bangjae").value = rotObj.bangjae || "";
-                                                    if (rowTr.querySelector(".rot-jeonqi")) rowTr.querySelector(".rot-jeonqi").value = rotObj.jeonqi || "";
-                                                    if (rowTr.querySelector(".rot-seolbi")) rowTr.querySelector(".rot-seolbi").value = rotObj.seolbi || "";
-                                                    if (rowTr.querySelector(".rot-total")) rowTr.querySelector(".rot-total").value = rotObj.total || "";
-                                                }
-                                            });
-                                        }
-
-                                        rawContent = parsed.logContent || "";
+                                    if (parsed.reportMeta && !res.data["personnel_status"]) {
+                                        applyPersonnelMeta(parsed.reportMeta);
                                     }
-                                } catch(e) { /* 일반 텍스트인 경우 무시 */ }
+                                    rawContent = parsed.logContent || "";
+                                } catch(e) {}
                             }
 
                             const textarea = document.getElementById(`log-${key}`);
@@ -1618,6 +1550,53 @@
             }
         })
         .catch(err => console.error("데이터 로드 중 오류:", err));
+    }
+
+    function applyPersonnelMeta(meta) {
+        if (!meta) return;
+        if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
+        if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
+        if (meta.userName) document.getElementById("user-name").value = meta.userName;
+        if (meta.dept) document.getElementById("dept-select").value = meta.dept;
+
+        if (meta.personnel && Array.isArray(meta.personnel)) {
+            meta.personnel.forEach((rowVals, rIdx) => {
+                const rowTr = document.querySelector(`#table-personnel .calc-row[data-row="${rIdx}"]`);
+                if (rowTr) {
+                    const inputs = rowTr.querySelectorAll("input");
+                    rowVals.forEach((val, vIdx) => {
+                        if (inputs[vIdx]) {
+                            inputs[vIdx].value = val;
+                            if (vIdx < inputs.length - 1) calcRowTotal(inputs[vIdx]);
+                        }
+                    });
+                }
+            });
+        }
+
+        if (meta.accidents) {
+            for (let i = 1; i <= 10; i++) {
+                const accArea = document.getElementById(`acc-${i}`);
+                if (accArea && meta.accidents[`acc_${i}`]) {
+                    accArea.value = meta.accidents[`acc_${i}`];
+                    autoResizeTextarea(accArea);
+                }
+            }
+        }
+
+        if (meta.rotation && Array.isArray(meta.rotation)) {
+            meta.rotation.forEach((rotObj, rIdx) => {
+                const rowTr = document.querySelector(`#table-rotation tbody tr[data-rot="${rIdx}"]`);
+                if (rowTr) {
+                    if (rowTr.querySelector(".rot-loc")) rowTr.querySelector(".rot-loc").value = rotObj.loc || "";
+                    if (rowTr.querySelector(".rot-saryeong")) rowTr.querySelector(".rot-saryeong").value = rotObj.saryeong || "";
+                    if (rowTr.querySelector(".rot-bangjae")) rowTr.querySelector(".rot-bangjae").value = rotObj.bangjae || "";
+                    if (rowTr.querySelector(".rot-jeonqi")) rowTr.querySelector(".rot-jeonqi").value = rotObj.jeonqi || "";
+                    if (rowTr.querySelector(".rot-seolbi")) rowTr.querySelector(".rot-seolbi").value = rotObj.seolbi || "";
+                    if (rowTr.querySelector(".rot-total")) rowTr.querySelector(".rot-total").value = rotObj.total || "";
+                }
+            });
+        }
     }
 
     window.onload = function() {
