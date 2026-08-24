@@ -517,8 +517,8 @@
             <span class="help-icon">?</span>
         </div>
         <div class="btn-group" data-html2canvas-ignore="true">
-            <button class="btn" onclick="window.location.href='tree_material.html'">트리로 이동</button>
             <button class="btn btn-main">결재</button>
+            <!-- 💡 저장 버튼 기능 변경 -->
             <button class="btn btn-save" onclick="saveReportData()">저장</button>
             <button class="btn" onclick="window.print()">인쇄</button>
             <button class="btn btn-pdf" onclick="exportToPdfDirect()">PDF 저장</button>
@@ -1076,6 +1076,9 @@
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    
+    // ★ 파이어스토어(Firestore) 연결 초기화
+    const dbStore = firebase.firestore();
 
     let SYSTEM_PASSWORD = "8888";
     let isInitialLoadReport = true;
@@ -1118,9 +1121,6 @@
             document.getElementById('sys-pass-input').focus();
         }
     });
-
-    // ★ 배포한 Google Apps Script Web App URL ★
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxRlUq3rsH_WK9OlOp55ha9ishxWQXZJZo03qqsBtq2M7GkUO5hTxxRqnzKB06tdZs/exec"; 
 
     let activePhotoTarget = { teamKey: '', index: 0 };
 
@@ -1356,7 +1356,8 @@
         totalInput.value = hasValue ? sum : '';
     }
 
-    function saveReportData() {
+    // ★ 클라우드(Firebase Firestore) 저장 기능 완벽 연동 ★
+    async function saveReportData() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) {
             alert("일자를 입력하세요.");
@@ -1365,7 +1366,7 @@
 
         // 1. 인원 현황 표 데이터 수집 (5개 행)
         const personnelRowsData = [];
-        document.querySelectorAll("#table-personnel .calc-row").forEach((row, rIdx) => {
+        document.querySelectorAll("#table-personnel .calc-row").forEach((row) => {
             const inputs = row.querySelectorAll("input");
             const rowValues = [];
             inputs.forEach(inp => rowValues.push(inp.value));
@@ -1380,7 +1381,7 @@
 
         // 3. 순환 근무자 현황 데이터 수집 (4개 행)
         const rotationRowsData = [];
-        document.querySelectorAll("#table-rotation tbody tr").forEach((row, rIdx) => {
+        document.querySelectorAll("#table-rotation tbody tr").forEach((row) => {
             rotationRowsData.push({
                 loc: row.querySelector(".rot-loc")?.value || "",
                 saryeong: row.querySelector(".rot-saryeong")?.value || "",
@@ -1391,6 +1392,7 @@
             });
         });
 
+        // 메타 데이터
         const reportMeta = {
             statusCode: document.getElementById("status-select").value,
             userCode: document.getElementById("user-code").value,
@@ -1398,11 +1400,15 @@
             dept: document.getElementById("dept-select").value,
             personnel: personnelRowsData,
             accidents: accidentTexts,
-            rotation: rotationRowsData
+            rotation: rotationRowsData,
+            imgDamdang: document.getElementById("img-damdang").getAttribute('src') || "",
+            imgTeam: document.getElementById("img-team").getAttribute('src') || "",
+            imgSojang: document.getElementById("img-sojang").getAttribute('src') || ""
         };
 
+        // 각 팀별 일지 텍스트와 사진 수집
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
-        let saveCount = 0;
+        const teamsData = {};
 
         teamKeys.forEach(team => {
             const logContent = document.getElementById(`log-${team}`).value || "";
@@ -1413,39 +1419,37 @@
                 photos.push(img && img.style.display !== "none" ? img.src : "");
             }
 
-            const payload = {
-                action: "save",
-                workDate: workDate,
-                team: team,
-                contentData: { logContent: logContent, reportMeta: (team === "sobang" ? reportMeta : undefined) },
+            teamsData[team] = {
+                logContent: logContent,
                 photos: photos
             };
-
-            fetch(GAS_WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            })
-            .then(() => {
-                saveCount++;
-                if (saveCount === teamKeys.length) {
-                    alert("보고서 인원현황, 순환근무자 및 모든 팀의 일지 데이터가 서버에 안전하게 저장되었습니다!");
-                }
-            })
-            .catch(err => {
-                console.error("저장 오류:", err);
-            });
         });
+
+        // 파이어스토어에 전송할 최종 패키지
+        const payload = {
+            workDate: workDate,
+            reportMeta: reportMeta,
+            teamsData: teamsData,
+            updatedAt: new Date().toISOString()
+        };
+
+        try {
+            await dbStore.collection("daily_work_reports").doc(workDate).set(payload);
+            alert("보고서 인원현황, 순환근무자 및 모든 팀의 일지 데이터가 안전하게 클라우드에 저장되었습니다!");
+        } catch (err) {
+            console.error("저장 오류:", err);
+            alert("저장 중 오류가 발생했습니다: " + err.message);
+        }
     }
 
-    function loadAllTeamsDataFromServer() {
+    // ★ 클라우드(Firebase Firestore) 데이터 불러오기 완벽 연동 ★
+    async function loadAllTeamsDataFromServer() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
 
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         
-        // 날짜 변경 시 초기화
+        // 날짜 변경 시 모든 입력값 초기화
         teamKeys.forEach(key => {
             const textarea = document.getElementById(`log-${key}`);
             if (textarea) {
@@ -1457,110 +1461,110 @@
             }
         });
 
-        // 인원현황 및 사고내용 초기화
         document.querySelectorAll("#table-personnel .calc-row input").forEach(inp => inp.value = "");
         for (let i = 1; i <= 10; i++) {
             const accArea = document.getElementById(`acc-${i}`);
             if (accArea) { accArea.value = ""; autoResizeTextarea(accArea); }
         }
-        // 순환근무자 초기화
         document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
 
-        fetch(`${GAS_WEB_APP_URL}?workDate=${workDate}`)
-        .then(res => res.json())
-        .then(res => {
-            if (res.status === "success" && res.data) {
-                teamKeys.forEach(key => {
-                    if (res.data[key]) {
-                        const teamData = res.data[key];
+        ['img-damdang', 'img-team', 'img-sojang'].forEach(imgId => {
+            const img = document.getElementById(imgId);
+            if (img) { img.src = ""; img.style.display = "none"; }
+        });
 
-                        if (teamData.contentData) {
-                            const textarea = document.getElementById(`log-${key}`);
-                            if (textarea) {
-                                const content = teamData.contentData.logContent !== undefined ? teamData.contentData.logContent : teamData.contentData.workLogContent;
-                                if (content !== undefined) {
-                                    textarea.value = content;
-                                    autoResizeTextarea(textarea);
-                                }
-                            }
+        try {
+            const doc = await dbStore.collection("daily_work_reports").doc(workDate).get();
+            if (doc.exists) {
+                const data = doc.data();
 
-                            // 소방팀 데이터에 함께 저장된 공통 보고서 메타데이터 불러오기
-                            if (key === "sobang" && teamData.contentData.reportMeta) {
-                                const meta = teamData.contentData.reportMeta;
-                                if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
-                                if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
-                                if (meta.userName) document.getElementById("user-name").value = meta.userName;
-                                if (meta.dept) document.getElementById("dept-select").value = meta.dept;
+                // 1. 공통 정보 (인원 현황 등) 복원
+                if (data.reportMeta) {
+                    const meta = data.reportMeta;
+                    if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
+                    if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
+                    if (meta.userName) document.getElementById("user-name").value = meta.userName;
+                    if (meta.dept) document.getElementById("dept-select").value = meta.dept;
 
-                                // 인원현황 복원
-                                if (meta.personnel && Array.isArray(meta.personnel)) {
-                                    meta.personnel.forEach((rowVals, rIdx) => {
-                                        const rowTr = document.querySelector(`#table-personnel .calc-row[data-row="${rIdx}"]`);
-                                        if (rowTr) {
-                                            const inputs = rowTr.querySelectorAll("input");
-                                            rowVals.forEach((val, vIdx) => {
-                                                if (inputs[vIdx]) {
-                                                    inputs[vIdx].value = val;
-                                                    if (vIdx < inputs.length - 1) {
-                                                        // 총합 재계산 트리거
-                                                        calcRowTotal(inputs[vIdx]);
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
+                    if (meta.imgDamdang) { const img = document.getElementById("img-damdang"); img.src = meta.imgDamdang; img.style.display = "block"; }
+                    if (meta.imgTeam) { const img = document.getElementById("img-team"); img.src = meta.imgTeam; img.style.display = "block"; }
+                    if (meta.imgSojang) { const img = document.getElementById("img-sojang"); img.src = meta.imgSojang; img.style.display = "block"; }
 
-                                // 사고내용 복원
-                                if (meta.accidents) {
-                                    for (let i = 1; i <= 10; i++) {
-                                        const accArea = document.getElementById(`acc-${i}`);
-                                        if (accArea && meta.accidents[`acc_${i}`]) {
-                                            accArea.value = meta.accidents[`acc_${i}`];
-                                            autoResizeTextarea(accArea);
-                                        }
+                    if (meta.personnel && Array.isArray(meta.personnel)) {
+                        meta.personnel.forEach((rowVals, rIdx) => {
+                            const rowTr = document.querySelector(`#table-personnel .calc-row[data-row="${rIdx}"]`);
+                            if (rowTr) {
+                                const inputs = rowTr.querySelectorAll("input");
+                                rowVals.forEach((val, vIdx) => {
+                                    if (inputs[vIdx]) {
+                                        inputs[vIdx].value = val;
+                                        if (vIdx < inputs.length - 1) calcRowTotal(inputs[vIdx]);
                                     }
-                                }
-
-                                // 순환근무자 복원
-                                if (meta.rotation && Array.isArray(meta.rotation)) {
-                                    meta.rotation.forEach((rotObj, rIdx) => {
-                                        const rowTr = document.querySelector(`#table-rotation tbody tr[data-rot="${rIdx}"]`);
-                                        if (rowTr) {
-                                            if (rowTr.querySelector(".rot-loc")) rowTr.querySelector(".rot-loc").value = rotObj.loc || "";
-                                            if (rowTr.querySelector(".rot-saryeong")) rowTr.querySelector(".rot-saryeong").value = rotObj.saryeong || "";
-                                            if (rowTr.querySelector(".rot-bangjae")) rowTr.querySelector(".rot-bangjae").value = rotObj.bangjae || "";
-                                            if (rowTr.querySelector(".rot-jeonqi")) rowTr.querySelector(".rot-jeonqi").value = rotObj.jeonqi || "";
-                                            if (rowTr.querySelector(".rot-seolbi")) rowTr.querySelector(".rot-seolbi").value = rotObj.seolbi || "";
-                                            if (rowTr.querySelector(".rot-total")) rowTr.querySelector(".rot-total").value = rotObj.total || "";
-                                        }
-                                    });
-                                }
+                                });
                             }
-                        }
+                        });
+                    }
 
-                        if (teamData.photoUrls && teamData.photoUrls.length > 0) {
-                            teamData.photoUrls.forEach((url, idx) => {
-                                const box = document.getElementById(`td-photo-${key}-${idx + 1}`);
-                                if (box && url) {
-                                    const img = box.querySelector("img.photo-card-img");
-                                    const icon = box.querySelector(".photo-card-icon");
-                                    const txt = box.querySelector(".photo-card-text");
-
-                                    img.src = url;
-                                    img.style.display = "block";
-                                    icon.style.display = "none";
-                                    txt.style.display = "none";
-                                    box.classList.add("has-img");
-                                }
-                            });
-                            checkAndUpdatePhotoRowState(key);
+                    if (meta.accidents) {
+                        for (let i = 1; i <= 10; i++) {
+                            const accArea = document.getElementById(`acc-${i}`);
+                            if (accArea && meta.accidents[`acc_${i}`]) {
+                                accArea.value = meta.accidents[`acc_${i}`];
+                                autoResizeTextarea(accArea);
+                            }
                         }
                     }
-                });
+
+                    if (meta.rotation && Array.isArray(meta.rotation)) {
+                        meta.rotation.forEach((rotObj, rIdx) => {
+                            const rowTr = document.querySelector(`#table-rotation tbody tr[data-rot="${rIdx}"]`);
+                            if (rowTr) {
+                                if (rowTr.querySelector(".rot-loc")) rowTr.querySelector(".rot-loc").value = rotObj.loc || "";
+                                if (rowTr.querySelector(".rot-saryeong")) rowTr.querySelector(".rot-saryeong").value = rotObj.saryeong || "";
+                                if (rowTr.querySelector(".rot-bangjae")) rowTr.querySelector(".rot-bangjae").value = rotObj.bangjae || "";
+                                if (rowTr.querySelector(".rot-jeonqi")) rowTr.querySelector(".rot-jeonqi").value = rotObj.jeonqi || "";
+                                if (rowTr.querySelector(".rot-seolbi")) rowTr.querySelector(".rot-seolbi").value = rotObj.seolbi || "";
+                                if (rowTr.querySelector(".rot-total")) rowTr.querySelector(".rot-total").value = rotObj.total || "";
+                            }
+                        });
+                    }
+                }
+
+                // 2. 각 팀별 데이터 복원
+                if (data.teamsData) {
+                    teamKeys.forEach(key => {
+                        if (data.teamsData[key]) {
+                            const teamData = data.teamsData[key];
+                            const textarea = document.getElementById(`log-${key}`);
+                            if (textarea && teamData.logContent !== undefined) {
+                                textarea.value = teamData.logContent;
+                                autoResizeTextarea(textarea);
+                            }
+
+                            if (teamData.photos && teamData.photos.length > 0) {
+                                teamData.photos.forEach((url, idx) => {
+                                    const box = document.getElementById(`td-photo-${key}-${idx + 1}`);
+                                    if (box && url) {
+                                        const img = box.querySelector("img.photo-card-img");
+                                        const icon = box.querySelector(".photo-card-icon");
+                                        const txt = box.querySelector(".photo-card-text");
+
+                                        img.src = url;
+                                        img.style.display = "block";
+                                        icon.style.display = "none";
+                                        txt.style.display = "none";
+                                        box.classList.add("has-img");
+                                    }
+                                });
+                                checkAndUpdatePhotoRowState(key);
+                            }
+                        }
+                    });
+                }
             }
-        })
-        .catch(err => console.error("데이터 로드 중 오류:", err));
+        } catch (err) {
+            console.error("데이터 로드 중 오류:", err);
+        }
     }
 
     window.onload = function() {
