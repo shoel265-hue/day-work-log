@@ -612,7 +612,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr class="calc-row">
+            <tr class="calc-row" data-row="0">
                 <td>총원</td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
@@ -625,7 +625,7 @@
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
-            <tr class="calc-row">
+            <tr class="calc-row" data-row="1">
                 <td>현재원</td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
@@ -638,7 +638,7 @@
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
-            <tr class="calc-row">
+            <tr class="calc-row" data-row="2">
                 <td>근무인원</td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
@@ -651,7 +651,7 @@
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
-            <tr class="calc-row">
+            <tr class="calc-row" data-row="3">
                 <td>사고</td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
@@ -664,7 +664,7 @@
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
-            <tr class="calc-row">
+            <tr class="calc-row" data-row="4">
                 <td>비번</td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
                 <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
@@ -707,41 +707,41 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
+            <tr data-rot="0">
                 <td>1</td>
-                <td><input type="text" class="grid-input"></td>
-                <td><input type="text" class="grid-input"></td>
-                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input" placeholder="이름"></div></td>
-                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input" placeholder="이름"></div></td>
-                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input" placeholder="이름"></div></td>
-                <td><input type="text" class="grid-input"></td>
+                <td><input type="text" class="grid-input rot-loc"></td>
+                <td><input type="text" class="grid-input rot-saryeong"></td>
+                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-bangjae" placeholder="이름"></div></td>
+                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름"></div></td>
+                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-seolbi" placeholder="이름"></div></td>
+                <td><input type="text" class="grid-input rot-total"></td>
             </tr>
-            <tr>
+            <tr data-rot="1">
                 <td>2</td>
-                <td><input type="text" class="grid-input"></td>
-                <td><input type="text" class="grid-input"></td>
-                <td><input type="text" class="grid-input"></td>
-                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input" placeholder="이름"></div></td>
-                <td><input type="text" class="grid-input"></td>
-                <td><input type="text" class="grid-input"></td>
+                <td><input type="text" class="grid-input rot-loc"></td>
+                <td><input type="text" class="grid-input rot-saryeong"></td>
+                <td><input type="text" class="grid-input rot-bangjae"></td>
+                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름"></div></td>
+                <td><input type="text" class="grid-input rot-seolbi"></td>
+                <td><input type="text" class="grid-input rot-total"></td>
             </tr>
-            <tr>
+            <tr data-rot="2">
                 <td>3</td>
-                <td><input type="text" class="grid-input"></td>
-                <td><input type="text" class="grid-input"></td>
-                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input" placeholder="이름"></div></td>
-                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input" placeholder="이름"></div></td>
-                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input" placeholder="이름"></div></td>
-                <td><input type="text" class="grid-input"></td>
+                <td><input type="text" class="grid-input rot-loc"></td>
+                <td><input type="text" class="grid-input rot-saryeong"></td>
+                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-bangjae" placeholder="이름"></div></td>
+                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름"></div></td>
+                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-seolbi" placeholder="이름"></div></td>
+                <td><input type="text" class="grid-input rot-total"></td>
             </tr>
-            <tr>
+            <tr data-rot="3">
                 <td>4</td>
-                <td><input type="text" class="grid-input"></td>
-                <td><input type="text" class="grid-input"></td>
-                <td><input type="text" class="grid-input"></td>
-                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input" placeholder="이름"></div></td>
-                <td><input type="text" class="grid-input"></td>
-                <td><input type="text" class="grid-input"></td>
+                <td><input type="text" class="grid-input rot-loc"></td>
+                <td><input type="text" class="grid-input rot-saryeong"></td>
+                <td><input type="text" class="grid-input rot-bangjae"></td>
+                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름"></div></td>
+                <td><input type="text" class="grid-input rot-seolbi"></td>
+                <td><input type="text" class="grid-input rot-total"></td>
             </tr>
         </tbody>
     </table>
@@ -1363,6 +1363,44 @@
             return;
         }
 
+        // 1. 인원 현황 표 데이터 수집 (5개 행)
+        const personnelRowsData = [];
+        document.querySelectorAll("#table-personnel .calc-row").forEach((row, rIdx) => {
+            const inputs = row.querySelectorAll("input");
+            const rowValues = [];
+            inputs.forEach(inp => rowValues.push(inp.value));
+            personnelRowsData.push(rowValues);
+        });
+
+        // 2. 사고 내용 텍스트 수집 (10개)
+        const accidentTexts = {};
+        for (let i = 1; i <= 10; i++) {
+            accidentTexts[`acc_${i}`] = document.getElementById(`acc-${i}`).value || "";
+        }
+
+        // 3. 순환 근무자 현황 데이터 수집 (4개 행)
+        const rotationRowsData = [];
+        document.querySelectorAll("#table-rotation tbody tr").forEach((row, rIdx) => {
+            rotationRowsData.push({
+                loc: row.querySelector(".rot-loc")?.value || "",
+                saryeong: row.querySelector(".rot-saryeong")?.value || "",
+                bangjae: row.querySelector(".rot-bangjae")?.value || "",
+                jeonqi: row.querySelector(".rot-jeonqi")?.value || "",
+                seolbi: row.querySelector(".rot-seolbi")?.value || "",
+                total: row.querySelector(".rot-total")?.value || ""
+            });
+        });
+
+        const reportMeta = {
+            statusCode: document.getElementById("status-select").value,
+            userCode: document.getElementById("user-code").value,
+            userName: document.getElementById("user-name").value,
+            dept: document.getElementById("dept-select").value,
+            personnel: personnelRowsData,
+            accidents: accidentTexts,
+            rotation: rotationRowsData
+        };
+
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         let saveCount = 0;
 
@@ -1379,7 +1417,7 @@
                 action: "save",
                 workDate: workDate,
                 team: team,
-                contentData: { logContent: logContent },
+                contentData: { logContent: logContent, reportMeta: (team === "sobang" ? reportMeta : undefined) },
                 photos: photos
             };
 
@@ -1392,7 +1430,7 @@
             .then(() => {
                 saveCount++;
                 if (saveCount === teamKeys.length) {
-                    alert("모든 팀의 일지 및 사진 데이터가 서버에 업데이트되었습니다!");
+                    alert("보고서 인원현황, 순환근무자 및 모든 팀의 일지 데이터가 서버에 안전하게 저장되었습니다!");
                 }
             })
             .catch(err => {
@@ -1407,7 +1445,7 @@
 
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         
-        // 날짜 변경 시 기존 입력값 및 사진 초기화
+        // 날짜 변경 시 초기화
         teamKeys.forEach(key => {
             const textarea = document.getElementById(`log-${key}`);
             if (textarea) {
@@ -1418,6 +1456,15 @@
                 removePhotoCell(key, i);
             }
         });
+
+        // 인원현황 및 사고내용 초기화
+        document.querySelectorAll("#table-personnel .calc-row input").forEach(inp => inp.value = "");
+        for (let i = 1; i <= 10; i++) {
+            const accArea = document.getElementById(`acc-${i}`);
+            if (accArea) { accArea.value = ""; autoResizeTextarea(accArea); }
+        }
+        // 순환근무자 초기화
+        document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
 
         fetch(`${GAS_WEB_APP_URL}?workDate=${workDate}`)
         .then(res => res.json())
@@ -1434,6 +1481,60 @@
                                 if (content !== undefined) {
                                     textarea.value = content;
                                     autoResizeTextarea(textarea);
+                                }
+                            }
+
+                            // 소방팀 데이터에 함께 저장된 공통 보고서 메타데이터 불러오기
+                            if (key === "sobang" && teamData.contentData.reportMeta) {
+                                const meta = teamData.contentData.reportMeta;
+                                if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
+                                if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
+                                if (meta.userName) document.getElementById("user-name").value = meta.userName;
+                                if (meta.dept) document.getElementById("dept-select").value = meta.dept;
+
+                                // 인원현황 복원
+                                if (meta.personnel && Array.isArray(meta.personnel)) {
+                                    meta.personnel.forEach((rowVals, rIdx) => {
+                                        const rowTr = document.querySelector(`#table-personnel .calc-row[data-row="${rIdx}"]`);
+                                        if (rowTr) {
+                                            const inputs = rowTr.querySelectorAll("input");
+                                            rowVals.forEach((val, vIdx) => {
+                                                if (inputs[vIdx]) {
+                                                    inputs[vIdx].value = val;
+                                                    if (vIdx < inputs.length - 1) {
+                                                        // 총합 재계산 트리거
+                                                        calcRowTotal(inputs[vIdx]);
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+
+                                // 사고내용 복원
+                                if (meta.accidents) {
+                                    for (let i = 1; i <= 10; i++) {
+                                        const accArea = document.getElementById(`acc-${i}`);
+                                        if (accArea && meta.accidents[`acc_${i}`]) {
+                                            accArea.value = meta.accidents[`acc_${i}`];
+                                            autoResizeTextarea(accArea);
+                                        }
+                                    }
+                                }
+
+                                // 순환근무자 복원
+                                if (meta.rotation && Array.isArray(meta.rotation)) {
+                                    meta.rotation.forEach((rotObj, rIdx) => {
+                                        const rowTr = document.querySelector(`#table-rotation tbody tr[data-rot="${rIdx}"]`);
+                                        if (rowTr) {
+                                            if (rowTr.querySelector(".rot-loc")) rowTr.querySelector(".rot-loc").value = rotObj.loc || "";
+                                            if (rowTr.querySelector(".rot-saryeong")) rowTr.querySelector(".rot-saryeong").value = rotObj.saryeong || "";
+                                            if (rowTr.querySelector(".rot-bangjae")) rowTr.querySelector(".rot-bangjae").value = rotObj.bangjae || "";
+                                            if (rowTr.querySelector(".rot-jeonqi")) rowTr.querySelector(".rot-jeonqi").value = rotObj.jeonqi || "";
+                                            if (rowTr.querySelector(".rot-seolbi")) rowTr.querySelector(".rot-seolbi").value = rotObj.seolbi || "";
+                                            if (rowTr.querySelector(".rot-total")) rowTr.querySelector(".rot-total").value = rotObj.total || "";
+                                        }
+                                    });
                                 }
                             }
                         }
