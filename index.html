@@ -1355,7 +1355,7 @@
         totalInput.value = hasValue ? sum : '';
     }
 
-    // 💡 인원 현황 등 메타데이터를 구글 시트의 독립된 항목(team: "personnel_status")으로 저장 및 각 팀 일지는 기존처럼 연동 유지
+    // 💡 깃허브 HTML 파일 자체에는 인원 현황 데이터를 전혀 저장하지 않고, 오직 구글 시트(GAS)로만 전송하여 독립 저장
     function saveReportData() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) {
@@ -1398,14 +1398,11 @@
             rotation: rotationRowsData
         };
 
-        // 로컬 백업 저장
-        localStorage.setItem(`report_meta_${workDate}`, JSON.stringify(reportMeta));
-
-        // 1. 인원 현황 및 기본 메타데이터 독립 저장 요청 전송
+        // 1. 인원 현황 및 기본 메타데이터 구글 시트 독립 저장 요청 (깃허브 미저장)
         const personnelPayload = {
             action: "save",
             workDate: workDate,
-            team: "personnel_status", // 💡 구글 시트에 독립 저장될 키
+            team: "personnel_status", 
             contentData: { logContent: JSON.stringify(reportMeta) },
             photos: []
         };
@@ -1447,7 +1444,7 @@
             .then(() => {
                 saveCount++;
                 if (saveCount === teamKeys.length) {
-                    alert("인원 현황(독립 저장) 및 모든 팀의 일지 데이터가 안전하게 저장되었습니다!");
+                    alert("인원 현황 및 모든 팀의 일지 데이터가 구글 시트에 안전하게 독립 저장되었습니다!");
                 }
             })
             .catch(err => {
@@ -1456,7 +1453,7 @@
         });
     }
 
-    // 💡 구글 서버 및 로컬에서 인원 현황(독립 데이터)과 팀별 일지를 각각 불러와 복원하는 함수
+    // 💡 구글 서버(GAS)에서만 인원 현황과 팀별 일지를 불러오도록 수정 (로컬 저장소 조회 코드 완전 배제)
     function loadAllTeamsDataFromServer() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
@@ -1481,20 +1478,12 @@
         }
         document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
 
-        // 1순위: 로컬 스토리지에서 인원현황 먼저 복원 시도
-        const savedMetaStr = localStorage.getItem(`report_meta_${workDate}`);
-        if (savedMetaStr) {
-            try {
-                applyPersonnelMeta(JSON.parse(savedMetaStr));
-            } catch(e) { console.error(e); }
-        }
-
-        // 2순위: 구글 서버(GAS)에서 독립 저장된 인원 현황 및 각 팀 일지 불러오기
+        // 구글 서버(GAS)에서만 데이터를 조회하여 반영
         fetch(`${GAS_WEB_APP_URL}?workDate=${workDate}`)
         .then(res => res.json())
         .then(res => {
             if (res.status === "success" && res.data) {
-                // 독립 저장된 인원 현황 데이터 반영 우선 처리
+                // 구글 시트에 독립 저장된 인원 현황 데이터 반영
                 if (res.data["personnel_status"] && res.data["personnel_status"].contentData) {
                     try {
                         const metaJson = JSON.parse(res.data["personnel_status"].contentData.logContent);
@@ -1510,7 +1499,7 @@
                         if (teamData.contentData) {
                             let rawContent = teamData.contentData.logContent !== undefined ? teamData.contentData.logContent : teamData.contentData.workLogContent;
                             
-                            // 하위 호환성 (예전 소방 일지에 묶여 있던 데이터 처리)
+                            // 하위 호환성 처리
                             if (key === "sobang" && rawContent && rawContent.startsWith("{")) {
                                 try {
                                     const parsed = JSON.parse(rawContent);
