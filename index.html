@@ -785,7 +785,7 @@
         </div>
     </div>
 
-    <!-- 2. 소방 업무일지 (단독 파일과 동일한 sobang 키 사용 및 JSON 포맷 방어 적용) -->
+    <!-- 2. 소방 업무일지 (소방일지 전용 페이지와 충돌 방지를 위해 일일보고서 저장 목록에서 제외됨) -->
     <div class="log-section-block">
         <div class="section-title">
             <span>소방 업무일지</span>
@@ -1414,8 +1414,9 @@
             body: JSON.stringify(personnelPayload)
         }).catch(err => console.error("인원현황 저장 오류:", err));
 
-        // 2. 각 팀별 업무일지 및 사진 데이터 전송
-        const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
+        // 2. 각 팀별 업무일지 및 사진 데이터 전송 
+        // ★ 핵심 수정: "sobang"을 제외하여 소방일지 전용 페이지의 데이터(근무자 명단 등)가 덮어씌워지지 않도록 보호합니다.
+        const teamKeys = ["jumgeom", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         let saveCount = 0;
 
         teamKeys.forEach(team => {
@@ -1444,7 +1445,7 @@
             .then(() => {
                 saveCount++;
                 if (saveCount === teamKeys.length) {
-                    alert("인원 현황 및 모든 팀의 일지 데이터가 구글 시트에 안전하게 독립 저장되었습니다!");
+                    alert("인원 현황 및 팀 일지 데이터가 구글 시트에 안전하게 저장되었습니다!");
                 }
             })
             .catch(err => {
@@ -1495,7 +1496,6 @@
                         if (teamData.contentData) {
                             let rawContent = teamData.contentData.logContent !== undefined ? teamData.contentData.logContent : teamData.contentData.workLogContent;
                             
-                            // ★ 핵심 수정: 소방 단독 파일(index.html)이 JSON 형태로 감싸서 저장한 데이터(4444 포함)를 완벽하게 해제하여 가져오도록 보완
                             if (key === "sobang" && rawContent && typeof rawContent === 'string' && rawContent.trim().startsWith("{")) {
                                 try {
                                     const parsed = JSON.parse(rawContent);
