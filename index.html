@@ -131,15 +131,16 @@
         .btn-pdf:hover { background-color: #c9302c; }
 
         .btn-photo {
-            background-color: #e9ecef;
-            color: #6c757d;
-            border: 1px solid #ced4da;
+            background-color: #6c757d;
+            color: white;
+            border: none;
             padding: 2px 10px;
             border-radius: 4px;
             font-size: 11px;
-            cursor: not-allowed;
+            cursor: pointer;
             margin-left: 8px;
         }
+        .btn-photo:hover { background-color: #5a6268; }
 
         .info-grid {
             display: flex;
@@ -314,6 +315,7 @@
             border-bottom: 1px solid #4A90E2;
         }
 
+        /* 💡 금지 커서 제거 및 자연스러운 커서 적용 */
         .log-textarea {
             width: 100%;
             min-height: 48px;
@@ -321,11 +323,11 @@
             padding: 6px 4px;
             resize: vertical;
             line-height: 1.4;
-            background-color: #fafafa;
+            background: transparent;
             font-size: 11px;
             overflow-y: auto;
             display: block;
-            cursor: not-allowed;
+            cursor: text;
         }
 
         .log-textarea::placeholder {
@@ -351,33 +353,36 @@
         .photo-card-box {
             flex: 1;
             height: 120px;
-            border: 1.5px dashed #e0e0e0;
+            border: 1.5px dashed #ccc;
             border-radius: 4px;
-            background-color: #fcfcfc;
+            background-color: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
-            cursor: not-allowed;
+            cursor: pointer;
             overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .photo-card-box:hover {
+            background-color: #fafafa;
         }
 
         .photo-card-box.has-img {
             border: 1px solid #dcdcdc;
             padding: 0;
             background-color: #000;
-            cursor: default;
         }
 
         .photo-card-icon {
             font-size: 22px;
             margin-bottom: 4px;
-            opacity: 0.5;
         }
 
         .photo-card-text {
-            color: #aaa;
+            color: #888;
             font-size: 11px;
             font-weight: bold;
         }
@@ -710,30 +715,30 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>점검팀 업무일지</span>
-            <button class="btn-photo" disabled style="background-color: #e9ecef; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed;" title="팀 일지에서 수정하세요">사진</button>
+            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
         </div>
         <table class="data-table" id="table-log-jumgeom">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-jumgeom" class="log-textarea" readonly placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-jumgeom" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
                         <div id="print-log-jumgeom" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-jumgeom">
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-jumgeom-1">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jumgeom-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-jumgeom-2">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jumgeom-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-jumgeom-3">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jumgeom-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
@@ -745,30 +750,30 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>소방 업무일지</span>
-            <button class="btn-photo" disabled style="background-color: #e9ecef; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed;" title="팀 일지에서 수정하세요">사진</button>
+            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
         </div>
         <table class="data-table" id="table-log-sobang">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-sobang" class="log-textarea" readonly placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-sobang" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
                         <div id="print-log-sobang" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-sobang">
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-sobang-1">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-sobang-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-sobang-2">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-sobang-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-sobang-3">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-sobang-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
@@ -780,30 +785,30 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>전기 업무일지</span>
-            <button class="btn-photo" disabled style="background-color: #e9ecef; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed;" title="팀 일지에서 수정하세요">사진</button>
+            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
         </div>
         <table class="data-table" id="table-log-jeongi">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-jeongi" class="log-textarea" readonly placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-jeongi" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
                         <div id="print-log-jeongi" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-jeongi">
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-jeongi-1">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jeongi-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-jeongi-2">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jeongi-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-jeongi-3">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jeongi-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
@@ -815,30 +820,30 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>설비 업무일지</span>
-            <button class="btn-photo" disabled style="background-color: #e9ecef; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed;" title="팀 일지에서 수정하세요">사진</button>
+            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
         </div>
         <table class="data-table" id="table-log-seolbi">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-seolbi" class="log-textarea" readonly placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-seolbi" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
                         <div id="print-log-seolbi" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-seolbi">
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-seolbi-1">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-seolbi-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-seolbi-2">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-seolbi-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-seolbi-3">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-seolbi-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
@@ -850,30 +855,30 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>냉동 업무일지</span>
-            <button class="btn-photo" disabled style="background-color: #e9ecef; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed;" title="팀 일지에서 수정하세요">사진</button>
+            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
         </div>
         <table class="data-table" id="table-log-naengdong">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-naengdong" class="log-textarea" readonly placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-naengdong" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
                         <div id="print-log-naengdong" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-naengdong">
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-naengdong-1">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-naengdong-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-naengdong-2">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-naengdong-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-naengdong-3">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-naengdong-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
@@ -885,30 +890,30 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>운송 업무일지</span>
-            <button class="btn-photo" disabled style="background-color: #e9ecef; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed;" title="팀 일지에서 수정하세요">사진</button>
+            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
         </div>
         <table class="data-table" id="table-log-unsong">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-unsong" class="log-textarea" readonly placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-unsong" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
                         <div id="print-log-unsong" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-unsong">
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-unsong-1">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-unsong-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-unsong-2">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-unsong-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-unsong-3">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-unsong-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
@@ -920,30 +925,30 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>건축팀 업무일지</span>
-            <button class="btn-photo" disabled style="background-color: #e9ecef; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed;" title="팀 일지에서 수정하세요">사진</button>
+            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
         </div>
         <table class="data-table" id="table-log-geonchuk">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-geonchuk" class="log-textarea" readonly placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-geonchuk" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
                         <div id="print-log-geonchuk" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-geonchuk">
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-geonchuk-1">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-geonchuk-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-geonchuk-2">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-geonchuk-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-geonchuk-3">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-geonchuk-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
@@ -955,30 +960,30 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>미화팀 업무일지</span>
-            <button class="btn-photo" disabled style="background-color: #e9ecef; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed;" title="팀 일지에서 수정하세요">사진</button>
+            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
         </div>
         <table class="data-table" id="table-log-mihwa">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-mihwa" class="log-textarea" readonly placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-mihwa" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
                         <div id="print-log-mihwa" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-mihwa">
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-mihwa-1">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-mihwa-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-mihwa-2">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-mihwa-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
             </div>
-            <div class="photo-card-box" title="팀 일지에서 수정하세요" id="td-photo-mihwa-3">
+            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-mihwa-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
