@@ -315,7 +315,6 @@
             border-bottom: 1px solid #4A90E2;
         }
 
-        /* 💡 금지 커서 제거 및 자연스러운 커서 적용 */
         .log-textarea {
             width: 100%;
             min-height: 48px;
@@ -327,13 +326,17 @@
             font-size: 11px;
             overflow-y: auto;
             display: block;
-            cursor: text;
         }
 
         .log-textarea::placeholder {
             color: #888888 !important;
             opacity: 1 !important;
             font-style: normal;
+        }
+
+        .log-textarea:focus {
+            outline: none;
+            background-color: #fcfcfc;
         }
 
         .log-section-block {
@@ -367,6 +370,7 @@
         }
 
         .photo-card-box:hover {
+            border-color: #999;
             background-color: #fafafa;
         }
 
@@ -392,6 +396,37 @@
             height: 100%;
             object-fit: cover;
             display: block;
+        }
+
+        .photo-delete-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
+            background-color: #a30000;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: auto;
+        }
+
+        .photo-card-box:hover .photo-delete-btn {
+            opacity: 1;
+        }
+
+        .photo-delete-btn:hover {
+            background-color: #800000;
+            transform: scale(1.15);
         }
 
         .print-log-div {
@@ -430,7 +465,7 @@
         @media print {
             body { padding: 0; background-color: #fff; }
             .container { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; margin: 0; }
-            .btn-group, .help-icon, .btn-photo, #login-overlay { display: none !important; }
+            .btn-group, .help-icon, .btn-photo, .photo-delete-btn, #login-overlay { display: none !important; }
             input, select { border: none !important; background: transparent !important; appearance: none; -webkit-appearance: none; }
             
             .log-textarea.has-content { display: none !important; }
@@ -465,7 +500,7 @@
 </head>
 <body>
 
-<!-- 🔑 비밀번호 접속 인증 모달 스타일 -->
+<!-- 🔑 비밀번호 접속 인증 오버레이 모달 -->
 <div id="login-overlay">
     <div class="login-box">
         <h2>🔒 보고서 접속 인증</h2>
@@ -559,7 +594,10 @@
         </table>
     </div>
 
-    <div class="section-title">인원 현황</div>
+    <div class="section-title">인원 현황
+        <button type="button" id="btn-leave-fill" data-html2canvas-ignore="true" onclick="autoFillPersonnel(true)" style="margin-left:10px; padding:2px 8px; font-size:11px; cursor:pointer;">🔄 연차 데이터로 채우기</button>
+        <span id="leave-link-status" data-html2canvas-ignore="true" style="margin-left:8px; font-size:11px; font-weight:normal; color:#64748b;"></span>
+    </div>
     <table class="data-table" id="table-personnel">
         <thead>
             <tr>
@@ -579,15 +617,15 @@
         <tbody>
             <tr class="calc-row" data-row="0">
                 <td>총원</td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
             <tr class="calc-row" data-row="1">
@@ -715,33 +753,37 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>점검팀 업무일지</span>
-            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
+            <button class="btn-photo" onclick="clickTeamPhotoButton('jumgeom')">사진</button>
+            <input type="file" id="photo-jumgeom-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
         <table class="data-table" id="table-log-jumgeom">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-jumgeom" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-jumgeom" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="점검팀 업무 내역을 입력하세요."></textarea>
                         <div id="print-log-jumgeom" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-jumgeom">
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jumgeom-1">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('jumgeom', 1)" id="td-photo-jumgeom-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('jumgeom', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jumgeom-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('jumgeom', 2)" id="td-photo-jumgeom-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('jumgeom', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jumgeom-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('jumgeom', 3)" id="td-photo-jumgeom-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('jumgeom', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -750,33 +792,37 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>소방 업무일지</span>
-            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
+            <button class="btn-photo" onclick="clickTeamPhotoButton('sobang')">사진</button>
+            <input type="file" id="photo-sobang-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
         <table class="data-table" id="table-log-sobang">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-sobang" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-sobang" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="소방 업무 내역을 입력하세요."></textarea>
                         <div id="print-log-sobang" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-sobang">
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-sobang-1">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('sobang', 1)" id="td-photo-sobang-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('sobang', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-sobang-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('sobang', 2)" id="td-photo-sobang-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('sobang', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-sobang-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('sobang', 3)" id="td-photo-sobang-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('sobang', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -785,33 +831,37 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>전기 업무일지</span>
-            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
+            <button class="btn-photo" onclick="clickTeamPhotoButton('jeongi')">사진</button>
+            <input type="file" id="photo-jeongi-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
         <table class="data-table" id="table-log-jeongi">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-jeongi" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-jeongi" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="전기 업무 내역을 입력하세요."></textarea>
                         <div id="print-log-jeongi" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-jeongi">
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jeongi-1">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('jeongi', 1)" id="td-photo-jeongi-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('jeongi', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jeongi-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('jeongi', 2)" id="td-photo-jeongi-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('jeongi', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-jeongi-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('jeongi', 3)" id="td-photo-jeongi-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('jeongi', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -820,33 +870,37 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>설비 업무일지</span>
-            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
+            <button class="btn-photo" onclick="clickTeamPhotoButton('seolbi')">사진</button>
+            <input type="file" id="photo-seolbi-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
         <table class="data-table" id="table-log-seolbi">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-seolbi" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-seolbi" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="설비 업무 내역을 입력하세요."></textarea>
                         <div id="print-log-seolbi" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-seolbi">
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-seolbi-1">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('seolbi', 1)" id="td-photo-seolbi-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('seolbi', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-seolbi-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('seolbi', 2)" id="td-photo-seolbi-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('seolbi', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-seolbi-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('seolbi', 3)" id="td-photo-seolbi-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('seolbi', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -855,33 +909,37 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>냉동 업무일지</span>
-            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
+            <button class="btn-photo" onclick="clickTeamPhotoButton('naengdong')">사진</button>
+            <input type="file" id="photo-naengdong-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
         <table class="data-table" id="table-log-naengdong">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-naengdong" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-naengdong" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="냉동 업무 내역을 입력하세요."></textarea>
                         <div id="print-log-naengdong" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-naengdong">
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-naengdong-1">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('naengdong', 1)" id="td-photo-naengdong-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('naengdong', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-naengdong-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('naengdong', 2)" id="td-photo-naengdong-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('naengdong', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-naengdong-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('naengdong', 3)" id="td-photo-naengdong-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('naengdong', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -890,33 +948,37 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>운송 업무일지</span>
-            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
+            <button class="btn-photo" onclick="clickTeamPhotoButton('unsong')">사진</button>
+            <input type="file" id="photo-unsong-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
         <table class="data-table" id="table-log-unsong">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-unsong" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-unsong" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="운송 업무 내역을 입력하세요."></textarea>
                         <div id="print-log-unsong" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-unsong">
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-unsong-1">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('unsong', 1)" id="td-photo-unsong-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('unsong', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-unsong-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('unsong', 2)" id="td-photo-unsong-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('unsong', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-unsong-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('unsong', 3)" id="td-photo-unsong-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('unsong', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -925,33 +987,37 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>건축팀 업무일지</span>
-            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
+            <button class="btn-photo" onclick="clickTeamPhotoButton('geonchuk')">사진</button>
+            <input type="file" id="photo-geonchuk-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
         <table class="data-table" id="table-log-geonchuk">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-geonchuk" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-geonchuk" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="건축팀 업무 내역을 입력하세요."></textarea>
                         <div id="print-log-geonchuk" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-geonchuk">
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-geonchuk-1">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('geonchuk', 1)" id="td-photo-geonchuk-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('geonchuk', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-geonchuk-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('geonchuk', 2)" id="td-photo-geonchuk-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('geonchuk', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-geonchuk-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('geonchuk', 3)" id="td-photo-geonchuk-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('geonchuk', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -960,33 +1026,37 @@
     <div class="log-section-block">
         <div class="section-title">
             <span>미화팀 업무일지</span>
-            <button class="btn-photo" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')">사진</button>
+            <button class="btn-photo" onclick="clickTeamPhotoButton('mihwa')">사진</button>
+            <input type="file" id="photo-mihwa-file-target" accept="image/*" style="display:none;" onchange="uploadPhotoToSpecificCell(this)">
         </div>
         <table class="data-table" id="table-log-mihwa">
             <tbody>
                 <tr>
                     <td style="padding:0;">
-                        <textarea id="log-mihwa" class="log-textarea" readonly onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" placeholder="팀 일지에서 로그인하여 수정하세요."></textarea>
+                        <textarea id="log-mihwa" class="log-textarea" oninput="autoResizeTextarea(this)" placeholder="미화팀 업무 내역을 입력하세요."></textarea>
                         <div id="print-log-mihwa" class="print-log-div"></div>
                     </td>
                 </tr>
             </tbody>
         </table>
         <div class="photo-container-row empty-photo-row" id="photo-row-mihwa">
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-mihwa-1">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('mihwa', 1)" id="td-photo-mihwa-1">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 1</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('mihwa', 1);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-mihwa-2">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('mihwa', 2)" id="td-photo-mihwa-2">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 2</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('mihwa', 2);">✕</div>
             </div>
-            <div class="photo-card-box" onclick="alert('팀 일지 수정은 각 팀별 일지에서 로그인하여 수정하세요.')" id="td-photo-mihwa-3">
+            <div class="photo-card-box" onclick="handlePhotoCellClick('mihwa', 3)" id="td-photo-mihwa-3">
                 <div class="photo-card-icon">📷</div>
                 <div class="photo-card-text">사진 등록 3</div>
                 <img class="photo-card-img" style="display:none;">
+                <div class="photo-delete-btn" onclick="event.stopPropagation(); removePhotoCell('mihwa', 3);">✕</div>
             </div>
         </div>
     </div>
@@ -1055,6 +1125,8 @@
     // ★ 배포한 Google Apps Script Web App URL ★
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxRlUq3rsH_WK9OlOp55ha9ishxWQXZJZo03qqsBtq2M7GkUO5hTxxRqnzKB06tdZs/exec"; 
 
+    let activePhotoTarget = { teamKey: '', index: 0 };
+
     function setTodayDateFirst() {
         const today = new Date();
         const year = today.getFullYear();
@@ -1099,6 +1171,36 @@
         }
     }
 
+    function clickTeamPhotoButton(teamKey) {
+        let targetIndex = 1;
+        for (let i = 1; i <= 3; i++) {
+            const img = document.querySelector(`#td-photo-${teamKey}-${i} img.photo-card-img`);
+            if (!img || img.style.display === "none" || !img.src) {
+                targetIndex = i;
+                break;
+            }
+        }
+        openSpecificPhotoCellFile(teamKey, targetIndex);
+    }
+
+    function handlePhotoCellClick(teamKey, index) {
+        const box = document.getElementById(`td-photo-${teamKey}-${index}`);
+        const img = box.querySelector("img.photo-card-img");
+
+        if (!img || img.style.display === "none" || !img.src) {
+            openSpecificPhotoCellFile(teamKey, index);
+        }
+    }
+
+    function openSpecificPhotoCellFile(teamKey, index) {
+        activePhotoTarget = { teamKey: teamKey, index: index };
+        const fileInput = document.getElementById(`photo-${teamKey}-file-target`);
+        if (fileInput) {
+            fileInput.value = "";
+            fileInput.click();
+        }
+    }
+
     function compressImage(file, maxWidth, quality, callback) {
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -1127,6 +1229,44 @@
         reader.readAsDataURL(file);
     }
 
+    function uploadPhotoToSpecificCell(fileInput) {
+        if (fileInput.files && fileInput.files[0] && activePhotoTarget.teamKey && activePhotoTarget.index) {
+            compressImage(fileInput.files[0], 800, 0.75, function(compressedDataUrl) {
+                const box = document.getElementById(`td-photo-${activePhotoTarget.teamKey}-${activePhotoTarget.index}`);
+                if (box) {
+                    const img = box.querySelector("img.photo-card-img");
+                    const icon = box.querySelector(".photo-card-icon");
+                    const txt = box.querySelector(".photo-card-text");
+
+                    img.src = compressedDataUrl;
+                    img.style.display = "block";
+                    icon.style.display = "none";
+                    txt.style.display = "none";
+                    box.classList.add("has-img");
+
+                    checkAndUpdatePhotoRowState(activePhotoTarget.teamKey);
+                }
+            });
+        }
+    }
+
+    function removePhotoCell(teamKey, index) {
+        const box = document.getElementById(`td-photo-${teamKey}-${index}`);
+        if (box) {
+            const img = box.querySelector("img.photo-card-img");
+            const icon = box.querySelector(".photo-card-icon");
+            const txt = box.querySelector(".photo-card-text");
+
+            img.src = "";
+            img.style.display = "none";
+            icon.style.display = "block";
+            txt.style.display = "block";
+            box.classList.remove("has-img");
+
+            checkAndUpdatePhotoRowState(teamKey);
+        }
+    }
+
     function checkAndUpdatePhotoRowState(teamKey) {
         const rowDiv = document.getElementById(`photo-row-${teamKey}`);
         let hasAnyPhoto = false;
@@ -1140,9 +1280,9 @@
         }
 
         if (hasAnyPhoto) {
-            if (rowDiv) rowDiv.classList.remove("empty-photo-row");
+            rowDiv.classList.remove("empty-photo-row");
         } else {
-            if (rowDiv) rowDiv.classList.add("empty-photo-row");
+            rowDiv.classList.add("empty-photo-row");
         }
     }
 
@@ -1217,9 +1357,11 @@
         });
 
         totalInput.value = hasValue ? sum : '';
+
+        const rIdx = row.getAttribute('data-row');
+        if (!suppressWorkRecalc && (rIdx === '1' || rIdx === '3' || rIdx === '4')) recomputeWorkingRow();
     }
 
-    // ★ 보고서 저장 함수: 오직 인원 현황, 사고 내용, 순환 근무자 현황(personnel_status)만 저장합니다! ★
     function saveReportData() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) {
@@ -1259,7 +1401,8 @@
             dept: document.getElementById("dept-select").value,
             personnel: personnelRowsData,
             accidents: accidentTexts,
-            rotation: rotationRowsData
+            rotation: rotationRowsData,
+            savedAt: Date.now()
         };
 
         const personnelPayload = {
@@ -1275,19 +1418,54 @@
             mode: "no-cors",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(personnelPayload)
-        })
-        .then(() => {
-            alert("일일 근무 보고서(인원 현황 및 순환근무 현황)가 구글 시트에 안전하게 저장되었습니다!");
-        })
-        .catch(err => {
-            console.error("보고서 저장 오류:", err);
-            alert("저장 중 오류가 발생했습니다.");
+        }).catch(err => console.error("인원현황 저장 오류:", err));
+
+        savePersonnelToFirestore(workDate, reportMeta);
+
+        const teamKeys = ["jumgeom", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
+        let saveCount = 0;
+
+        teamKeys.forEach(team => {
+            const logContent = document.getElementById(`log-${team}`).value || "";
+            const photos = [];
+
+            for (let i = 1; i <= 3; i++) {
+                const img = document.querySelector(`#td-photo-${team}-${i} img.photo-card-img`);
+                photos.push(img && img.style.display !== "none" ? img.src : "");
+            }
+
+            const payload = {
+                action: "save",
+                workDate: workDate,
+                team: team,
+                contentData: { logContent: logContent },
+                photos: photos
+            };
+
+            fetch(GAS_WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                saveCount++;
+                if (saveCount === teamKeys.length) {
+                    alert("인원 현황 및 팀 일지 데이터가 구글 시트에 안전하게 저장되었습니다!");
+                }
+            })
+            .catch(err => {
+                console.error("팀 일지 저장 오류:", err);
+            });
         });
     }
 
     function loadAllTeamsDataFromServer() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
+
+        lastSheetSavedAt = 0;
+        updateFillButtonState();
 
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
         
@@ -1298,16 +1476,7 @@
                 autoResizeTextarea(textarea);
             }
             for (let i = 1; i <= 3; i++) {
-                const box = document.getElementById(`td-photo-${key}-${i}`);
-                if (box) {
-                    const img = box.querySelector("img.photo-card-img");
-                    const icon = box.querySelector(".photo-card-icon");
-                    const txt = box.querySelector(".photo-card-text");
-                    if (img) { img.src = ""; img.style.display = "none"; }
-                    if (icon) icon.style.display = "block";
-                    if (txt) txt.style.display = "block";
-                    box.classList.remove("has-img");
-                }
+                removePhotoCell(key, i);
             }
         });
 
@@ -1373,10 +1542,18 @@
                 });
             }
         })
-        .catch(err => console.error("데이터 로드 중 오류:", err));
+        .then(() => loadPersonnelFromFirestore(workDate))
+        .catch(err => { console.error("데이터 로드 중 오류:", err); loadPersonnelFromFirestore(workDate); });
     }
 
     function applyPersonnelMeta(meta) {
+        if (!meta) return;
+        lastSheetSavedAt = Number(meta.savedAt) || 0;
+        suppressWorkRecalc = true;          // 저장된 값은 그대로 보여 주고 근무인원을 다시 계산하지 않음
+        try { applyPersonnelMetaCore(meta); } finally { suppressWorkRecalc = false; }
+    }
+
+    function applyPersonnelMetaCore(meta) {
         if (!meta) return;
         if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
         if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
@@ -1421,6 +1598,226 @@
                 }
             });
         }
+    }
+
+    // ===== 연차관리 데이터로 인원 현황 자동 채움 (읽기 전용) =====
+    // 총원 처음 기본값 (관리, 방재, 전기, 운송, 설비, 냉동, 건축, 점검, 청소 순서 / 합계 55명). 화면에서 고치면 저장된 값이 우선합니다
+    const DEFAULT_HEADCOUNT_TOTAL = [2, 7, 9, 2, 7, 2, 4, 7, 15];
+
+    // 보고서 열 ↔ 연차관리 팀 이름 (관리는 소장·팀장만, 청소는 미화팀만, 입주사미화 제외)
+    const LEAVE_TEAM_COLS = [
+        { depts: ['관리'],   posTest: p => /소장|팀장/.test(p) },
+        { depts: ['소방팀'] },
+        { depts: ['전기팀'] },
+        { depts: ['운송'] },
+        { depts: ['설비팀'] },
+        { depts: ['냉동'] },
+        { depts: ['건축팀'] },
+        { depts: ['점검팀'] },
+        { depts: ['미화팀'] }
+    ];
+
+    function personnelRows() { return document.querySelectorAll('#table-personnel .calc-row'); }
+    function personnelCell(rowIdx, colIdx) { return personnelRows()[rowIdx].querySelectorAll('.num-input')[colIdx]; }
+
+    function recomputeWorkingRow() {
+        const rows = personnelRows();
+        const cur = rows[1].querySelectorAll('.num-input'), acc = rows[3].querySelectorAll('.num-input'),
+              off = rows[4].querySelectorAll('.num-input'), work = rows[2].querySelectorAll('.num-input');
+        const n = el => parseFloat(el.value) || 0;
+        let sum = 0, has = false;
+        work.forEach((inp, i) => {
+            if (cur[i].value === '') { inp.value = ''; return; }
+            const v = n(cur[i]) - n(acc[i]) - n(off[i]);   // 근무인원 = 현재원 - 사고 - 비번
+            inp.value = v; sum += v; has = true;
+        });
+        rows[2].querySelector('.total-input').value = has ? sum : '';
+    }
+
+    function leaveLabel(type) {
+        type = String(type || '');
+        if (type.includes('반차')) return '반차';
+        return type.replace(/휴가$/, '') || '휴가';
+    }
+
+    // 총원 기본값: 한 번 고치면 저장해 두고 다음 날짜부터 이어서 사용 (연차 데이터 문서의 reportHeadcount 필드)
+    let headcountDefaults = DEFAULT_HEADCOUNT_TOTAL.slice();
+    let headcountTimer = null;
+
+    async function fetchLeaveEmployees() {
+        const snap = await firebase.firestore().collection('annual_system').doc('dataStore').get();
+        const d = snap.exists ? snap.data() : null;
+        const hc = d && d.reportHeadcount;
+        if (Array.isArray(hc) && hc.length === DEFAULT_HEADCOUNT_TOTAL.length && hc.every(v => Number.isFinite(Number(v)))) {
+            headcountDefaults = hc.map(Number);
+        }
+        return Array.isArray(d && d.employees) ? d.employees : null;
+    }
+
+    function onHeadcountEdit() {
+        clearTimeout(headcountTimer);
+        headcountTimer = setTimeout(saveHeadcountDefaults, 700);
+    }
+
+    async function saveHeadcountDefaults() {
+        const status = document.getElementById('leave-link-status');
+        const vals = headcountDefaults.slice();
+        personnelRows()[0].querySelectorAll('.num-input').forEach((inp, i) => {
+            const v = parseInt(inp.value, 10);
+            if (Number.isFinite(v) && v >= 0) vals[i] = v;
+        });
+        try {
+            await firebase.firestore().collection('annual_system').doc('dataStore').set({
+                reportHeadcount: vals,
+                reportHeadcountUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            headcountDefaults = vals;
+            if (status) { status.textContent = '✅ 총원이 저장되었습니다 (다음 날짜부터 이어서 적용)'; status.style.color = '#059669'; }
+        } catch (e) {
+            console.error('총원 저장 실패:', e);
+            if (status) { status.textContent = '⚠️ 총원 저장 실패 (' + (e.code || e.message || '오류') + ')'; status.style.color = '#dc2626'; }
+        }
+    }
+
+    // 보고서에 이미 저장된 인원 현황이 있으면 그대로 두고, 비어 있을 때만 자동으로 채움
+    function localDateStr() {
+        const d = new Date();
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function isPastDate(date) { return !!date && date < localDateStr(); }
+    function updateFillButtonState() {
+        const btn = document.getElementById('btn-leave-fill');
+        if (!btn) return;
+        const past = isPastDate(document.getElementById('work-date').value);
+        btn.disabled = past;
+        btn.style.opacity = past ? '0.4' : '1';
+        btn.style.cursor = past ? 'not-allowed' : 'pointer';
+        btn.title = past ? '과거 날짜는 연차 데이터로 채울 수 없습니다' : '';
+    }
+
+    function fillPersonnelIfEmpty() {
+        let hasData = false;
+        personnelRows().forEach(r => r.querySelectorAll('.num-input').forEach(i => { if (i.value !== '') hasData = true; }));
+        for (let i = 1; i <= 10; i++) { const a = document.getElementById('acc-' + i); if (a && a.value.trim() !== '') hasData = true; }
+        if (hasData) return;
+        if (isPastDate(document.getElementById('work-date').value)) {
+            setLinkStatus('과거 날짜는 연차 데이터로 채우지 않습니다. 직접 입력해 주세요.', '#64748b');
+            return;
+        }
+        autoFillPersonnel(false);
+    }
+
+    // force=true: 버튼으로 다시 채우기 (총원이 이미 입력돼 있으면 총원은 그대로 둠, 비번은 건드리지 않음)
+    async function autoFillPersonnel(force) {
+        const date = document.getElementById('work-date').value;
+        const status = document.getElementById('leave-link-status');
+        if (!date) { if (force) alert('일자를 먼저 선택하세요.'); return; }
+        if (isPastDate(date)) { if (force) alert('과거 날짜는 연차 데이터로 채울 수 없습니다. 직접 입력해 주세요.'); return; }
+        if (status) status.textContent = '연차 데이터 불러오는 중...';
+        let emps;
+        try { emps = await fetchLeaveEmployees(); }
+        catch (e) {
+            console.error('연차 데이터 연동 실패:', e);
+            if (status) { status.textContent = '⚠️ 연차 데이터 연동 실패 (직접 입력해 주세요)'; status.style.color = '#dc2626'; }
+            return;
+        }
+        if (!emps) { if (status) status.textContent = '⚠️ 연차 데이터가 없습니다.'; return; }
+
+        let keptTeams = 0;
+        LEAVE_TEAM_COLS.forEach((cfg, col) => {
+            const members = emps.filter(e => {
+                if (!cfg.depts.includes(e.dept)) return false;
+                if (cfg.posTest && !cfg.posTest(String(e.position || ''))) return false;
+                if (e.joinDate && e.joinDate > date) return false;          // 입사 전
+                if (e.retireDate && e.retireDate < date) return false;      // 퇴사 후
+                return true;
+            }).sort((a, b) => (Number(a.no) || 9999) - (Number(b.no) || 9999));
+
+            const lines = [];
+            members.forEach(e => {
+                const hs = (e.history || []).filter(h => h.start && h.start <= date && (h.end || h.start) >= date);
+                if (!hs.length) return;
+                const labels = [...new Set(hs.map(h => leaveLabel(h.type)))];
+                lines.push({ name: e.name, text: `(${labels.join('·')})${e.name}` });
+            });
+
+            const totalCell = personnelCell(0, col);
+            if (totalCell.value === '') totalCell.value = headcountDefaults[col];   // 총원은 비어 있을 때만 기본값(저장된 값 우선)
+            personnelCell(1, col).value = members.length;   // 현재원
+
+            const area = document.getElementById('acc-' + (col + 1));
+            const manual = area ? area.value.trim() : '';
+            if (force && manual) {
+                // 수기로 적은 사고내용은 그대로 두고, 아직 적혀 있지 않은 사람만 뒤에 추가
+                const added = lines.filter(l => !manual.includes(l.name));
+                area.value = manual + (added.length ? '\n' + added.map(l => l.text).join('\n') : '');
+                personnelCell(3, col).value = (parseFloat(personnelCell(3, col).value) || 0) + added.length;
+                keptTeams++;
+            } else {
+                personnelCell(3, col).value = lines.length;     // 사고
+                if (area) area.value = lines.map(l => l.text).join('\n');
+            }
+            if (area) autoResizeTextarea(area);
+        });
+
+        [0, 1, 3, 4].forEach(r => calcRowTotal(personnelCell(r, 0)));
+        recomputeWorkingRow();
+        if (status) { status.textContent = '✅ 연차 데이터 반영됨 (' + date + ')' + (keptTeams ? ' · 수기 입력 ' + keptTeams + '개 팀은 유지하고 빠진 사람만 추가' : ''); status.style.color = '#059669'; }
+    }
+
+    // ===== 인원 현황 저장/불러오기: 구글 시트 + Firestore (Firestore에 오류가 나면 구글 시트만 사용) =====
+    let fsDisabled = false;          // Firestore 오류가 한 번 나면 이번 접속 동안 Firestore는 쓰지 않음
+    let lastSheetSavedAt = 0;        // 구글 시트에서 불러온 인원 현황의 저장 시각
+    let suppressWorkRecalc = false;
+
+    function setLinkStatus(msg, color) {
+        const st = document.getElementById('leave-link-status');
+        if (st) { st.textContent = msg; st.style.color = color || '#64748b'; }
+    }
+    function reportDocRef(date) { return firebase.firestore().collection('annual_system').doc('report_' + date); }
+
+    async function savePersonnelToFirestore(date, meta) {
+        if (fsDisabled) return;
+        try {
+            await reportDocRef(date).set({ workDate: date, savedAt: meta.savedAt, logContent: JSON.stringify(meta) });
+            setLinkStatus('✅ 인원 현황이 Firestore에도 저장되었습니다', '#059669');
+        } catch (e) {
+            fsDisabled = true;
+            console.error('Firestore 저장 실패:', e);
+            setLinkStatus('⚠️ Firestore 저장 오류 → 구글 시트로만 저장·불러오기 합니다 (' + (e.code || e.message || '오류') + ')', '#dc2626');
+        }
+    }
+
+    function clearPersonnelFields() {
+        document.querySelectorAll("#table-personnel .calc-row input").forEach(inp => inp.value = "");
+        for (let i = 1; i <= 10; i++) {
+            const a = document.getElementById(`acc-${i}`);
+            if (a) { a.value = ""; autoResizeTextarea(a); }
+        }
+        document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
+    }
+
+    // 구글 시트 데이터를 먼저 보여 준 뒤, Firestore에 더 최근에 저장된 값이 있으면 그것으로 교체
+    async function loadPersonnelFromFirestore(date) {
+        if (!fsDisabled) {
+            try {
+                const snap = await reportDocRef(date).get();
+                if (document.getElementById('work-date').value !== date) return;   // 그 사이 날짜가 바뀐 경우
+                if (snap.exists) {
+                    const d = snap.data() || {};
+                    if (d.logContent && (Number(d.savedAt) || 0) >= lastSheetSavedAt) {
+                        clearPersonnelFields();
+                        applyPersonnelMeta(JSON.parse(d.logContent));
+                        setLinkStatus('☁️ Firestore에 저장된 인원 현황을 불러왔습니다', '#059669');
+                    }
+                }
+            } catch (e) {
+                fsDisabled = true;
+                console.error('Firestore 불러오기 실패:', e);
+                setLinkStatus('⚠️ Firestore 오류 → 구글 시트 데이터로 표시합니다 (' + (e.code || e.message || '오류') + ')', '#dc2626');
+            }
+        }
+        if (document.getElementById('work-date').value === date) fillPersonnelIfEmpty();
     }
 
     window.onload = function() {
