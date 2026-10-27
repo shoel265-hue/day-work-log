@@ -1861,11 +1861,12 @@
     }
     if (PORTAL_TEAM) {
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.log-textarea').forEach(t => { t.readOnly = true; });
+            document.querySelectorAll('textarea[id^="log-"]').forEach(t => { t.readOnly = true; });   // 팀 업무일지 칸만 (사고내용 acc-N 은 제외)
         });
         // 업무일지 칸을 클릭해도 커서가 들어가지 않고 안내만 표시
         document.addEventListener('mousedown', e => {
-            if (e.target.closest && e.target.closest('.log-textarea')) { e.preventDefault(); showLockNotice(); }
+            const ta = e.target.closest && e.target.closest('textarea');
+            if (ta && /^log-/.test(ta.id)) { e.preventDefault(); showLockNotice(); }   // 팀 업무일지 칸만 잠금
         }, true);
         // 사진 추가·삭제 버튼도 같은 안내
         document.addEventListener('click', e => {
