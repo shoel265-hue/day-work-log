@@ -1413,7 +1413,7 @@
             photos: []
         };
 
-        fetch(GAS_WEB_APP_URL, {
+        const personnelPromise = fetch(GAS_WEB_APP_URL, {
             method: "POST",
             mode: "no-cors",
             headers: { "Content-Type": "application/json" },
@@ -1422,8 +1422,12 @@
 
         savePersonnelToFirestore(workDate, reportMeta);
 
+        // 팀 업무내용(업무일지·사진)은 각 팀 일일업무일지에서 수정한 내용만 구글 시트에 저장되어야 하므로,
+        // 이 화면에서 직접 수정한 팀만 저장하고 나머지는 건드리지 않음 (팀 계정 로그인 시에는 수정 자체가 잠겨 있음)
         const teamKeys = ["jumgeom", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
-        let saveCount = 0;
+        const teamNames = { jumgeom: "점검", jeongi: "전기", seolbi: "설비", naengdong: "냉동", unsong: "운송", geonchuk: "건축", mihwa: "미화" };
+        const jobs = [personnelPromise];
+        const savedTeams = [];
 
         teamKeys.forEach(team => {
             const logContent = document.getElementById(`log-${team}`).value || "";
@@ -1434,6 +1438,9 @@
                 photos.push(img && img.style.display !== "none" ? img.src : "");
             }
 
+            const base = teamBaseline && teamBaseline[team];
+            if (!base || (base.log === logContent && base.photos.join("|") === photos.join("|"))) return;   // 수정 안 한 팀은 저장 안 함
+
             const payload = {
                 action: "save",
                 workDate: workDate,
@@ -1442,21 +1449,23 @@
                 photos: photos
             };
 
-            fetch(GAS_WEB_APP_URL, {
+            savedTeams.push(teamNames[team]);
+            jobs.push(fetch(GAS_WEB_APP_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             })
-            .then(() => {
-                saveCount++;
-                if (saveCount === teamKeys.length) {
-                    alert("인원 현황 및 팀 일지 데이터가 구글 시트에 안전하게 저장되었습니다!");
-                }
-            })
+            .then(() => { teamBaseline[team] = { log: logContent, photos: photos }; })
             .catch(err => {
                 console.error("팀 일지 저장 오류:", err);
-            });
+            }));
+        });
+
+        Promise.all(jobs).then(() => {
+            alert(savedTeams.length
+                ? "인원 현황과 수정한 팀 일지(" + savedTeams.join(", ") + ")가 구글 시트에 저장되었습니다!"
+                : "인원 현황이 구글 시트에 저장되었습니다!\n(팀 업무내용은 각 팀 일일업무일지에서 수정한 내용만 저장됩니다)");
         });
     }
 
@@ -1465,6 +1474,7 @@
         if (!workDate) return;
 
         lastSheetSavedAt = 0;
+        teamBaseline = null;
         updateFillButtonState();
 
         const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
@@ -1817,7 +1827,52 @@
                 setLinkStatus('⚠️ Firestore 오류 → 구글 시트 데이터로 표시합니다 (' + (e.code || e.message || '오류') + ')', '#dc2626');
             }
         }
-        if (document.getElementById('work-date').value === date) fillPersonnelIfEmpty();
+        if (document.getElementById('work-date').value === date) {
+            fillPersonnelIfEmpty();
+            snapshotTeamBaseline();
+        }
+    }
+
+    // ===== 팀 업무내용 보호: 불러온 시점 값을 기준으로 저장, 팀 계정 로그인 시 이 화면에서 수정 불가 =====
+    let teamBaseline = null;      // { 팀키: { log, photos } } - 불러온 직후의 값 (수정 여부 판단용)
+
+    function snapshotTeamBaseline() {
+        const base = {};
+        ["jumgeom", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"].forEach(team => {
+            const ta = document.getElementById(`log-${team}`);
+            const photos = [];
+            for (let i = 1; i <= 3; i++) {
+                const img = document.querySelector(`#td-photo-${team}-${i} img.photo-card-img`);
+                photos.push(img && img.style.display !== "none" ? img.src : "");
+            }
+            base[team] = { log: ta ? (ta.value || "") : "", photos: photos };
+        });
+        teamBaseline = base;
+    }
+
+    // 통합 포털에서 팀 계정(예: 소방팀)으로 로그인하면 ?team=팀이름 이 전달됨
+    const PORTAL_TEAM = (() => { try { return (new URLSearchParams(location.search).get('team') || '').trim(); } catch (e) { return ''; } })();
+    let lockNoticeAt = 0;
+    function showLockNotice() {
+        const now = Date.now();
+        if (now - lockNoticeAt < 1200) return;
+        lockNoticeAt = now;
+        alert('⚠️ 각 팀의 업무내용(업무일지·사진)은 해당 팀의 [일일업무일지]에서 수정해 주세요.\n이 화면에서는 수정할 수 없습니다.');
+    }
+    if (PORTAL_TEAM) {
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.log-textarea').forEach(t => { t.readOnly = true; });
+        });
+        // 업무일지 칸을 클릭해도 커서가 들어가지 않고 안내만 표시
+        document.addEventListener('mousedown', e => {
+            if (e.target.closest && e.target.closest('.log-textarea')) { e.preventDefault(); showLockNotice(); }
+        }, true);
+        // 사진 추가·삭제 버튼도 같은 안내
+        document.addEventListener('click', e => {
+            if (e.target.closest && e.target.closest('.btn-photo, .photo-card-box, .photo-delete-btn')) {
+                e.preventDefault(); e.stopPropagation(); showLockNotice();
+            }
+        }, true);
     }
 
     window.onload = function() {
