@@ -1645,10 +1645,11 @@
     }
 
     function leaveLabel(type) {
-        type = String(type || '');
-        if (type.includes('반차')) return '반차';
-        return type.replace(/휴가$/, '') || '휴가';
-    }
+    type = String(type || '');
+    if (type.includes('교육반차')) return '교육반차';
+    if (type.includes('반차')) return '반차';
+    return type.replace(/휴가$/, '') || '휴가';
+}
 
     // 총원 기본값: 한 번 고치면 저장해 두고 다음 날짜부터 이어서 사용 (연차 데이터 문서의 reportHeadcount 필드)
     let headcountDefaults = DEFAULT_HEADCOUNT_TOTAL.slice();
