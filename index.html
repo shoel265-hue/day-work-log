@@ -1750,7 +1750,12 @@
             members.forEach(e => {
                 const hs = (e.history || []).filter(h => h.start && h.start <= date && (h.end || h.start) >= date);
                 if (!hs.length) return;
-                const labels = [...new Set(hs.map(h => leaveLabel(h.type)))];
+               const labels = [...new Set(hs.map(h => {
+    const raw = JSON.stringify(h);
+    if (raw.includes('교육') && String(h.type || '').includes('반차')) return '교육반차';
+    return leaveLabel(h.type);
+}))];
+
                 lines.push({ name: e.name, text: `(${labels.join('·')})${e.name}` });
             });
 
