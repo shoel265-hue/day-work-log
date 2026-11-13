@@ -514,10 +514,10 @@
     <div class="header">
         <div class="title-area">
             <h2>일일 근무 보고서</h2>
-            <span class="help-icon">?</span>
+            <span class="help-icon" title="인원 현황·순환 근무자·결재 서명은 자동 저장되며, 최종 보고서 반영은 [저장] 버튼을 누르세요.">?</span>
         </div>
         <div class="btn-group" data-html2canvas-ignore="true">
-            <button class="btn btn-main">결재</button>
+            <button class="btn btn-main" onclick="approveReport()">결재</button>
             <button class="btn btn-save" onclick="saveReportData()">저장</button>
             <button class="btn" onclick="window.print()">인쇄</button>
             <button class="btn btn-pdf" onclick="exportToPdfDirect()">PDF 저장</button>
@@ -528,14 +528,14 @@
         <div class="info-row">
             <div class="info-label required">일자</div>
             <div class="info-input">
-                <input type="date" id="work-date" onchange="loadAllTeamsDataFromServer()" style="width: 130px;">
+                <input type="date" id="work-date" onchange="handleDateChange()" style="width: 130px;">
             </div>
         </div>
 
         <div class="info-row">
             <div class="info-label required">상태</div>
             <div class="info-input">
-                <select id="status-select" style="width: 130px;">
+                <select id="status-select" onchange="schedulePersonnelAutoSave()" style="width: 130px;">
                     <option value="신규(작성중)">신규(작성중)</option>
                     <option value="일지완료" selected>일지완료</option>
                     <option value="결재대기">결재대기</option>
@@ -546,15 +546,15 @@
         <div class="info-row">
             <div class="info-label">담당자</div>
             <div class="info-input">
-                <input type="text" id="user-code" value="009" style="width: 45px; text-align: center;">
-                <input type="text" id="user-name" value="이욱호" style="width: 95px; background-color: #fcf8e3;">
+                <input type="text" id="user-code" value="009" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()" style="width: 45px; text-align: center;">
+                <input type="text" id="user-name" value="이욱호" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()" style="width: 95px; background-color: #fcf8e3;">
             </div>
         </div>
 
         <div class="info-row">
             <div class="info-label">담당부서</div>
             <div class="info-input">
-                <select id="dept-select" style="width: 130px;">
+                <select id="dept-select" onchange="schedulePersonnelAutoSave()" style="width: 130px;">
                     <option value="">선택</option>
                     <option value="통합보고서반" selected>통합보고서반</option>
                     <option value="소방팀">소방팀</option>
@@ -567,7 +567,7 @@
 
     <div class="excel-section-title">
         <span>엑셀</span>
-        <button class="btn" style="padding: 2px 10px; font-size: 11px;" data-html2canvas-ignore="true">엑셀 열기</button>
+        <button class="btn" style="padding: 2px 10px; font-size: 11px;" data-html2canvas-ignore="true" onclick="exportToExcelCsv()">엑셀 열기</button>
     </div>
     <div class="excel-box">
         <table class="approval-table">
@@ -617,81 +617,81 @@
         <tbody>
             <tr class="calc-row" data-row="0">
                 <td>총원</td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); onHeadcountEdit()" onblur="flushPersonnelAutoSave()"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
             <tr class="calc-row" data-row="1">
                 <td>현재원</td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
             <tr class="calc-row" data-row="2">
                 <td>근무인원</td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
             <tr class="calc-row" data-row="3">
                 <td>사고</td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
             <tr class="calc-row" data-row="4">
                 <td>비번</td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
-                <td><input type="number" class="num-input" oninput="calcRowTotal(this)"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="number" class="num-input" oninput="calcRowTotal(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
                 <td><input type="text" class="grid-input total-input" readonly></td>
             </tr>
             <tr id="row-accident">
                 <td>사고내용</td>
-                <td style="padding:0;"><textarea id="acc-1" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-1" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-2" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-2" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-3" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-3" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-4" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-4" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-5" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-5" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-6" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-6" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-7" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-7" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-8" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-8" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-9" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-9" class="print-log-div"></div></td>
-                <td style="padding:0;"><textarea id="acc-10" class="log-textarea" oninput="autoResizeTextarea(this)"></textarea><div id="print-acc-10" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-1" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-1" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-2" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-2" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-3" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-3" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-4" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-4" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-5" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-5" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-6" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-6" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-7" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-7" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-8" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-8" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-9" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-9" class="print-log-div"></div></td>
+                <td style="padding:0;"><textarea id="acc-10" class="log-textarea" oninput="autoResizeTextarea(this); schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></textarea><div id="print-acc-10" class="print-log-div"></div></td>
             </tr>
         </tbody>
     </table>
@@ -712,39 +712,39 @@
         <tbody>
             <tr data-rot="0">
                 <td>1</td>
-                <td><input type="text" class="grid-input rot-loc"></td>
-                <td><input type="text" class="grid-input rot-saryeong"></td>
-                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-bangjae" placeholder="이름"></div></td>
-                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름"></div></td>
-                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-seolbi" placeholder="이름"></div></td>
-                <td><input type="text" class="grid-input rot-total"></td>
+                <td><input type="text" class="grid-input rot-loc" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="text" class="grid-input rot-saryeong" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-bangjae" placeholder="이름" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></div></td>
+                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></div></td>
+                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-seolbi" placeholder="이름" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></div></td>
+                <td><input type="text" class="grid-input rot-total" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
             </tr>
             <tr data-rot="1">
                 <td>2</td>
-                <td><input type="text" class="grid-input rot-loc"></td>
-                <td><input type="text" class="grid-input rot-saryeong"></td>
-                <td><input type="text" class="grid-input rot-bangjae"></td>
-                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름"></div></td>
-                <td><input type="text" class="grid-input rot-seolbi"></td>
-                <td><input type="text" class="grid-input rot-total"></td>
+                <td><input type="text" class="grid-input rot-loc" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="text" class="grid-input rot-saryeong" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="text" class="grid-input rot-bangjae" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><div class="shift-cell"><span class="shift-label">주)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></div></td>
+                <td><input type="text" class="grid-input rot-seolbi" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="text" class="grid-input rot-total" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
             </tr>
             <tr data-rot="2">
                 <td>3</td>
-                <td><input type="text" class="grid-input rot-loc"></td>
-                <td><input type="text" class="grid-input rot-saryeong"></td>
-                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-bangjae" placeholder="이름"></div></td>
-                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름"></div></td>
-                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-seolbi" placeholder="이름"></div></td>
-                <td><input type="text" class="grid-input rot-total"></td>
+                <td><input type="text" class="grid-input rot-loc" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="text" class="grid-input rot-saryeong" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-bangjae" placeholder="이름" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></div></td>
+                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></div></td>
+                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-seolbi" placeholder="이름" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></div></td>
+                <td><input type="text" class="grid-input rot-total" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
             </tr>
             <tr data-rot="3">
                 <td>4</td>
-                <td><input type="text" class="grid-input rot-loc"></td>
-                <td><input type="text" class="grid-input rot-saryeong"></td>
-                <td><input type="text" class="grid-input rot-bangjae"></td>
-                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름"></div></td>
-                <td><input type="text" class="grid-input rot-seolbi"></td>
-                <td><input type="text" class="grid-input rot-total"></td>
+                <td><input type="text" class="grid-input rot-loc" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="text" class="grid-input rot-saryeong" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="text" class="grid-input rot-bangjae" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><div class="shift-cell"><span class="shift-label">야)</span><input type="text" class="shift-input rot-jeonqi" placeholder="이름" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></div></td>
+                <td><input type="text" class="grid-input rot-seolbi" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
+                <td><input type="text" class="grid-input rot-total" oninput="schedulePersonnelAutoSave()" onblur="flushPersonnelAutoSave()"></td>
             </tr>
         </tbody>
     </table>
@@ -1127,16 +1127,38 @@
 
     let activePhotoTarget = { teamKey: '', index: 0 };
 
-    function setTodayDateFirst() {
+    // 통합 포털에서 팀 계정(예: 소방팀)으로 로그인하면 ?team=팀이름 이 전달됨 (총괄 관리자는 빈 문자열)
+    const PORTAL_TEAM = (() => { try { return (new URLSearchParams(location.search).get('team') || '').trim(); } catch (e) { return ''; } })();
+
+    // 8개 전체 팀 키 (총괄 관리자는 소방일지 포함 전체 팀 수정·저장 가능, 팀 계정 로그인 시에는 전체 잠금)
+    const ALL_TEAM_KEYS = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
+    const TEAM_LABELS = {
+        jumgeom: "점검",
+        sobang: "소방",
+        jeongi: "전기",
+        seolbi: "설비",
+        naengdong: "냉동",
+        unsong: "운송",
+        geonchuk: "건축",
+        mihwa: "미화"
+    };
+
+    function localDateStr() {
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
-        const todayStr = `${year}-${month}-${day}`;
+        return `${year}-${month}-${day}`;
+    }
 
+    function isPastDate(date) {
+        return !!date && date < localDateStr();
+    }
+
+    function setTodayDateFirst() {
         const workDateElem = document.getElementById("work-date");
         if (workDateElem) {
-            workDateElem.value = todayStr;
+            workDateElem.value = localDateStr();
         }
     }
 
@@ -1149,12 +1171,42 @@
         document.getElementById(fileInputId).click();
     }
 
+    // ===== 4번 반영: 결재 서명 이미지 서버 자동 백업 및 결재·엑셀 버튼 동작 구현 =====
+    function getSignaturesData() {
+        const getSrc = (id) => {
+            const img = document.getElementById(id);
+            return (img && img.style.display !== "none" && img.src && img.src.startsWith("data:")) ? img.src : "";
+        };
+        return {
+            damdang: getSrc("img-damdang"),
+            team: getSrc("img-team"),
+            sojang: getSrc("img-sojang")
+        };
+    }
+
+    function applySignaturesData(sigs) {
+        const map = { damdang: "img-damdang", team: "img-team", sojang: "img-sojang" };
+        Object.keys(map).forEach(k => {
+            const img = document.getElementById(map[k]);
+            if (!img) return;
+            const src = (sigs && sigs[k]) ? sigs[k] : "";
+            if (src) {
+                img.src = src;
+                img.style.display = "block";
+            } else {
+                img.src = "";
+                img.style.display = "none";
+            }
+        });
+    }
+
     function handleSignClick(fileInputId, imgId) {
         const img = document.getElementById(imgId);
         if (img && img.style.display !== "none" && img.src) {
             if (confirm("등록된 결재 서명/도장을 삭제하시겠습니까?")) {
                 img.src = "";
                 img.style.display = "none";
+                flushPersonnelAutoSave();
             }
         } else {
             triggerFileInput(fileInputId);
@@ -1167,8 +1219,70 @@
                 const img = document.getElementById(imgId);
                 img.src = compressedDataUrl;
                 img.style.display = "block";
+                flushPersonnelAutoSave();
             });
         }
+    }
+
+    function approveReport() {
+        const statusSel = document.getElementById("status-select");
+        if (!statusSel) return;
+        const nextStatus = statusSel.value === "일지완료" ? "결재대기" : "일지완료";
+        if (confirm(`보고서 상태를 '${nextStatus}'(으)로 변경하고 저장하시겠습니까?`)) {
+            statusSel.value = nextStatus;
+            saveReportData();
+        }
+    }
+
+    function exportToExcelCsv() {
+        const workDate = document.getElementById("work-date").value || "날짜미상";
+        const rows = [];
+        const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+
+        rows.push(["일일 근무 보고서", workDate, "상태", document.getElementById("status-select").value, "담당자", `${document.getElementById("user-code").value} ${document.getElementById("user-name").value}`, "담당부서", document.getElementById("dept-select").value]);
+        rows.push([]);
+        rows.push(["[인원 현황]", "관리", "방재", "전기", "운송", "설비", "냉동", "건축", "점검", "청소", "계"]);
+
+        document.querySelectorAll("#table-personnel .calc-row").forEach(tr => {
+            const label = tr.cells[0].innerText.trim();
+            const vals = Array.from(tr.querySelectorAll("input")).map(i => i.value);
+            rows.push([label, ...vals]);
+        });
+
+        const accVals = [];
+        for (let i = 1; i <= 10; i++) {
+            accVals.push(document.getElementById(`acc-${i}`)?.value || "");
+        }
+        rows.push(["사고내용", ...accVals]);
+        rows.push([]);
+        rows.push(["[순환 근무자 현황]", "근무지", "당직사령", "방재실", "전기실", "설비실", "계"]);
+        document.querySelectorAll("#table-rotation tbody tr").forEach((tr, idx) => {
+            rows.push([
+                String(idx + 1),
+                tr.querySelector(".rot-loc")?.value || "",
+                tr.querySelector(".rot-saryeong")?.value || "",
+                tr.querySelector(".rot-bangjae")?.value || "",
+                tr.querySelector(".rot-jeonqi")?.value || "",
+                tr.querySelector(".rot-seolbi")?.value || "",
+                tr.querySelector(".rot-total")?.value || ""
+            ]);
+        });
+        rows.push([]);
+        rows.push(["[팀별 업무일지]", "업무 내역"]);
+        ALL_TEAM_KEYS.forEach(k => {
+            rows.push([`${TEAM_LABELS[k]} 업무일지`, document.getElementById(`log-${k}`)?.value || ""]);
+        });
+
+        const csvContent = "\uFEFF" + rows.map(r => r.map(esc).join(",")).join("\r\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `일일근무보고서_${workDate}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     function clickTeamPhotoButton(teamKey) {
@@ -1306,8 +1420,6 @@
     }
 
     window.onbeforeprint = function() {
-        const logIds = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
-        
         for (let i = 1; i <= 10; i++) {
             const textarea = document.getElementById("acc-" + i);
             const printDiv = document.getElementById("print-acc-" + i);
@@ -1323,7 +1435,7 @@
             }
         }
 
-        logIds.forEach(id => {
+        ALL_TEAM_KEYS.forEach(id => {
             const textarea = document.getElementById("log-" + id);
             const printDiv = document.getElementById("print-log-" + id);
             
@@ -1362,13 +1474,7 @@
         if (!suppressWorkRecalc && (rIdx === '1' || rIdx === '3' || rIdx === '4')) recomputeWorkingRow();
     }
 
-    function saveReportData() {
-        const workDate = document.getElementById("work-date").value;
-        if (!workDate) {
-            alert("일자를 입력하세요.");
-            return;
-        }
-
+    function buildPersonnelMeta() {
         const personnelRowsData = [];
         document.querySelectorAll("#table-personnel .calc-row").forEach((row) => {
             const inputs = row.querySelectorAll("input");
@@ -1394,7 +1500,7 @@
             });
         });
 
-        const reportMeta = {
+        return {
             statusCode: document.getElementById("status-select").value,
             userCode: document.getElementById("user-code").value,
             userName: document.getElementById("user-name").value,
@@ -1402,8 +1508,21 @@
             personnel: personnelRowsData,
             accidents: accidentTexts,
             rotation: rotationRowsData,
+            signatures: getSignaturesData(),
             savedAt: Date.now()
         };
+    }
+
+    function saveReportData() {
+        const workDate = document.getElementById("work-date").value;
+        if (!workDate) {
+            alert("일자를 입력하세요.");
+            return;
+        }
+
+        clearTimeout(personnelAutoSaveTimer);
+        pendingAutoSaveDate = null;
+        const reportMeta = buildPersonnelMeta();
 
         const personnelPayload = {
             action: "save",
@@ -1420,66 +1539,80 @@
             body: JSON.stringify(personnelPayload)
         }).catch(err => console.error("인원현황 저장 오류:", err));
 
-        savePersonnelToFirestore(workDate, reportMeta);
+        savePersonnelToFirestore(workDate, reportMeta, false);
 
-        // 팀 업무내용(업무일지·사진)은 각 팀 일일업무일지에서 수정한 내용만 구글 시트에 저장되어야 하므로,
-        // 이 화면에서 직접 수정한 팀만 저장하고 나머지는 건드리지 않음 (팀 계정 로그인 시에는 수정 자체가 잠겨 있음)
-        const teamKeys = ["jumgeom", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
-        const teamNames = { jumgeom: "점검", jeongi: "전기", seolbi: "설비", naengdong: "냉동", unsong: "운송", geonchuk: "건축", mihwa: "미화" };
+        // 총괄 관리자 로그인 시에는 소방일지(sobang) 포함 8개 팀 중 직접 수정한 팀만 구글 시트에 저장
+        // 팀 계정(?team=...) 로그인 시에는 팀 업무일지가 잠겨 있으므로 teamBaseline과 동일해 저장되지 않음
         const jobs = [personnelPromise];
         const savedTeams = [];
 
-        teamKeys.forEach(team => {
-            const logContent = document.getElementById(`log-${team}`).value || "";
-            const photos = [];
+        if (!PORTAL_TEAM) {
+            ALL_TEAM_KEYS.forEach(team => {
+                const logContent = document.getElementById(`log-${team}`).value || "";
+                const photos = [];
 
-            for (let i = 1; i <= 3; i++) {
-                const img = document.querySelector(`#td-photo-${team}-${i} img.photo-card-img`);
-                photos.push(img && img.style.display !== "none" ? img.src : "");
-            }
+                for (let i = 1; i <= 3; i++) {
+                    const img = document.querySelector(`#td-photo-${team}-${i} img.photo-card-img`);
+                    photos.push(img && img.style.display !== "none" ? img.src : "");
+                }
 
-            const base = teamBaseline && teamBaseline[team];
-            if (!base || (base.log === logContent && base.photos.join("|") === photos.join("|"))) return;   // 수정 안 한 팀은 저장 안 함
+                const base = teamBaseline && teamBaseline[team];
+                if (!base || (base.log === logContent && base.photos.join("|") === photos.join("|"))) return;
 
-            const payload = {
-                action: "save",
-                workDate: workDate,
-                team: team,
-                contentData: { logContent: logContent },
-                photos: photos
-            };
+                const payload = {
+                    action: "save",
+                    workDate: workDate,
+                    team: team,
+                    contentData: { logContent: logContent },
+                    photos: photos
+                };
 
-            savedTeams.push(teamNames[team]);
-            jobs.push(fetch(GAS_WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            })
-            .then(() => { teamBaseline[team] = { log: logContent, photos: photos }; })
-            .catch(err => {
-                console.error("팀 일지 저장 오류:", err);
-            }));
-        });
+                savedTeams.push(TEAM_LABELS[team]);
+                jobs.push(fetch(GAS_WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+                .then(() => { teamBaseline[team] = { log: logContent, photos: photos }; })
+                .catch(err => {
+                    console.error("팀 일지 저장 오류:", err);
+                }));
+            });
+        }
 
         Promise.all(jobs).then(() => {
             alert(savedTeams.length
                 ? "인원 현황과 수정한 팀 일지(" + savedTeams.join(", ") + ")가 구글 시트에 저장되었습니다!"
-                : "인원 현황이 구글 시트에 저장되었습니다!\n(팀 업무내용은 각 팀 일일업무일지에서 수정한 내용만 저장됩니다)");
+                : "인원 현황이 구글 시트에 저장되었습니다!\n(팀 업무내용은 각 팀 일일업무일지 또는 총괄 관리자가 수정한 내용만 저장됩니다)");
         });
+    }
+
+    let currentLoadedDate = "";
+
+    function handleDateChange() {
+        // 날짜를 바꾸기 직전 대기 중인 자동 저장이 있으면 이전 날짜에 즉시 반영
+        if (pendingAutoSaveDate && pendingAutoSaveDate !== document.getElementById("work-date").value) {
+            const prevDate = pendingAutoSaveDate;
+            clearTimeout(personnelAutoSaveTimer);
+            pendingAutoSaveDate = null;
+            const prevMeta = buildPersonnelMeta();
+            savePersonnelToFirestore(prevDate, prevMeta, true);
+        }
+        loadAllTeamsDataFromServer();
     }
 
     function loadAllTeamsDataFromServer() {
         const workDate = document.getElementById("work-date").value;
         if (!workDate) return;
 
+        currentLoadedDate = workDate;
+        clearTimeout(personnelAutoSaveTimer);
+        pendingAutoSaveDate = null;
         lastSheetSavedAt = 0;
         teamBaseline = null;
-        updateFillButtonState();
 
-        const teamKeys = ["jumgeom", "sobang", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"];
-        
-        teamKeys.forEach(key => {
+        ALL_TEAM_KEYS.forEach(key => {
             const textarea = document.getElementById(`log-${key}`);
             if (textarea) {
                 textarea.value = "";
@@ -1490,16 +1623,13 @@
             }
         });
 
-        document.querySelectorAll("#table-personnel .calc-row input").forEach(inp => inp.value = "");
-        for (let i = 1; i <= 10; i++) {
-            const accArea = document.getElementById(`acc-${i}`);
-            if (accArea) { accArea.value = ""; autoResizeTextarea(accArea); }
-        }
-        document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
+        clearPersonnelFields();
+        applyDefaultMetaForDate(workDate);
 
         fetch(`${GAS_WEB_APP_URL}?workDate=${workDate}`)
         .then(res => res.json())
         .then(res => {
+            if (document.getElementById("work-date").value !== workDate) return;
             if (res.status === "success" && res.data) {
                 if (res.data["personnel_status"] && res.data["personnel_status"].contentData) {
                     try {
@@ -1508,7 +1638,7 @@
                     } catch(e) {}
                 }
 
-                teamKeys.forEach(key => {
+                ALL_TEAM_KEYS.forEach(key => {
                     if (res.data[key]) {
                         const teamData = res.data[key];
 
@@ -1556,19 +1686,32 @@
         .catch(err => { console.error("데이터 로드 중 오류:", err); loadPersonnelFromFirestore(workDate); });
     }
 
+    // 오늘·미래 날짜는 기본 담당자(009 이욱호) 세팅, 미저장 과거 날짜는 담당자 칸을 비워 오기록 방지
+    function applyDefaultMetaForDate(date) {
+        document.getElementById("status-select").value = "일지완료";
+        document.getElementById("dept-select").value = "통합보고서반";
+        if (isPastDate(date)) {
+            document.getElementById("user-code").value = "";
+            document.getElementById("user-name").value = "";
+        } else {
+            document.getElementById("user-code").value = "009";
+            document.getElementById("user-name").value = "이욱호";
+        }
+    }
+
     function applyPersonnelMeta(meta) {
         if (!meta) return;
         lastSheetSavedAt = Number(meta.savedAt) || 0;
-        suppressWorkRecalc = true;          // 저장된 값은 그대로 보여 주고 근무인원을 다시 계산하지 않음
+        suppressWorkRecalc = true;
         try { applyPersonnelMetaCore(meta); } finally { suppressWorkRecalc = false; }
     }
 
     function applyPersonnelMetaCore(meta) {
         if (!meta) return;
-        if (meta.statusCode) document.getElementById("status-select").value = meta.statusCode;
-        if (meta.userCode) document.getElementById("user-code").value = meta.userCode;
-        if (meta.userName) document.getElementById("user-name").value = meta.userName;
-        if (meta.dept) document.getElementById("dept-select").value = meta.dept;
+        if (meta.statusCode !== undefined) document.getElementById("status-select").value = meta.statusCode;
+        if (meta.userCode !== undefined) document.getElementById("user-code").value = meta.userCode;
+        if (meta.userName !== undefined) document.getElementById("user-name").value = meta.userName;
+        if (meta.dept !== undefined) document.getElementById("dept-select").value = meta.dept;
 
         if (meta.personnel && Array.isArray(meta.personnel)) {
             meta.personnel.forEach((rowVals, rIdx) => {
@@ -1608,13 +1751,15 @@
                 }
             });
         }
+
+        if (meta.signatures) {
+            applySignaturesData(meta.signatures);
+        }
     }
 
-    // ===== 연차관리 데이터로 인원 현황 자동 채움 (읽기 전용) =====
-    // 총원 처음 기본값 (관리, 방재, 전기, 운송, 설비, 냉동, 건축, 점검, 청소 순서 / 합계 55명). 화면에서 고치면 저장된 값이 우선합니다
+    // ===== 연차관리 데이터로 인원 현황 자동 채움 (과거·현재·미래 모든 날짜 연동) =====
     const DEFAULT_HEADCOUNT_TOTAL = [2, 7, 9, 2, 7, 2, 4, 7, 15];
 
-    // 보고서 열 ↔ 연차관리 팀 이름 (관리는 소장·팀장만, 청소는 미화팀만, 입주사미화 제외)
     const LEAVE_TEAM_COLS = [
         { depts: ['관리'],   posTest: p => /소장|팀장/.test(p) },
         { depts: ['소방팀'] },
@@ -1645,13 +1790,12 @@
     }
 
     function leaveLabel(type) {
-    type = String(type || '');
-    if (type.includes('교육') && type.includes('반차')) return '교육반차';
-    if (type.includes('반차')) return '반차';
-    return type.replace(/휴가$/, '') || '휴가';
-}
+        type = String(type || '');
+        if (type.includes('교육') && type.includes('반차')) return '교육반차';
+        if (type.includes('반차')) return '반차';
+        return type.replace(/휴가$/, '') || '휴가';
+    }
 
-    // 총원 기본값: 한 번 고치면 저장해 두고 다음 날짜부터 이어서 사용 (연차 데이터 문서의 reportHeadcount 필드)
     let headcountDefaults = DEFAULT_HEADCOUNT_TOTAL.slice();
     let headcountTimer = null;
 
@@ -1666,6 +1810,7 @@
     }
 
     function onHeadcountEdit() {
+        schedulePersonnelAutoSave();
         clearTimeout(headcountTimer);
         headcountTimer = setTimeout(saveHeadcountDefaults, 700);
     }
@@ -1683,48 +1828,29 @@
                 reportHeadcountUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
             headcountDefaults = vals;
-            if (status) { status.textContent = '✅ 총원이 저장되었습니다 (다음 날짜부터 이어서 적용)'; status.style.color = '#059669'; }
+            if (status) { status.textContent = '✅ 총원 및 인원 현황이 자동 저장되었습니다'; status.style.color = '#059669'; }
         } catch (e) {
             console.error('총원 저장 실패:', e);
             if (status) { status.textContent = '⚠️ 총원 저장 실패 (' + (e.code || e.message || '오류') + ')'; status.style.color = '#dc2626'; }
         }
     }
 
-    // 보고서에 이미 저장된 인원 현황이 있으면 그대로 두고, 비어 있을 때만 자동으로 채움
-    function localDateStr() {
-        const d = new Date();
-        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    }
-    function isPastDate(date) { return !!date && date < localDateStr(); }
-    function updateFillButtonState() {
-        const btn = document.getElementById('btn-leave-fill');
-        if (!btn) return;
-        const past = isPastDate(document.getElementById('work-date').value);
-        btn.disabled = past;
-        btn.style.opacity = past ? '0.4' : '1';
-        btn.style.cursor = past ? 'not-allowed' : 'pointer';
-        btn.title = past ? '과거 날짜는 연차 데이터로 채울 수 없습니다' : '';
-    }
-
+    // 보고서에 저장된 인원/순환근무자 현황이 전혀 없을 때만 연차 데이터로 자동 채움 (과거·현재·미래 모두 허용)
     function fillPersonnelIfEmpty() {
         let hasData = false;
         personnelRows().forEach(r => r.querySelectorAll('.num-input').forEach(i => { if (i.value !== '') hasData = true; }));
         for (let i = 1; i <= 10; i++) { const a = document.getElementById('acc-' + i); if (a && a.value.trim() !== '') hasData = true; }
+        document.querySelectorAll('#table-rotation tbody input').forEach(i => { if (i.value.trim() !== '') hasData = true; });
         if (hasData) return;
-        if (isPastDate(document.getElementById('work-date').value)) {
-            setLinkStatus('과거 날짜는 연차 데이터로 채우지 않습니다. 직접 입력해 주세요.', '#64748b');
-            return;
-        }
         autoFillPersonnel(false);
     }
 
-    // force=true: 버튼으로 다시 채우기 (총원이 이미 입력돼 있으면 총원은 그대로 둠, 비번은 건드리지 않음)
+    // force=true: 버튼으로 다시 채우기 (총원은 유지, 비번 및 순환근무자 현황은 건드리지 않음)
     async function autoFillPersonnel(force) {
         const date = document.getElementById('work-date').value;
         const status = document.getElementById('leave-link-status');
         if (!date) { if (force) alert('일자를 먼저 선택하세요.'); return; }
-        if (isPastDate(date)) { if (force) alert('과거 날짜는 연차 데이터로 채울 수 없습니다. 직접 입력해 주세요.'); return; }
-        if (status) status.textContent = '연차 데이터 불러오는 중...';
+        if (status) { status.textContent = '연차 데이터 불러오는 중...'; status.style.color = '#64748b'; }
         let emps;
         try { emps = await fetchLeaveEmployees(); }
         catch (e) {
@@ -1733,7 +1859,7 @@
             if (status) { status.textContent = '⚠️ 연차 데이터 연동 실패 (직접 입력해 주세요)'; status.style.color = '#dc2626'; }
             return;
         }
-        if (document.getElementById('work-date').value !== date) return;   // 불러오는 사이 날짜가 바뀌었으면 채우지 않음
+        if (document.getElementById('work-date').value !== date) return;
         if (!emps) { if (status) status.textContent = '⚠️ 연차 데이터가 없습니다.'; return; }
 
         let keptTeams = 0;
@@ -1750,23 +1876,22 @@
             members.forEach(e => {
                 const hs = (e.history || []).filter(h => h.start && h.start <= date && (h.end || h.start) >= date);
                 if (!hs.length) return;
-               const labels = [...new Set(hs.map(h => {
-    const raw = JSON.stringify(h);
-    if (raw.includes('교육') && String(h.type || '').includes('반차')) return '교육반차';
-    return leaveLabel(h.type);
-}))];
+                const labels = [...new Set(hs.map(h => {
+                    const raw = JSON.stringify(h);
+                    if (raw.includes('교육') && String(h.type || '').includes('반차')) return '교육반차';
+                    return leaveLabel(h.type);
+                }))];
 
                 lines.push({ name: e.name, text: `(${labels.join('·')})${e.name}` });
             });
 
             const totalCell = personnelCell(0, col);
-            if (totalCell.value === '') totalCell.value = headcountDefaults[col];   // 총원은 비어 있을 때만 기본값(저장된 값 우선)
+            if (totalCell.value === '') totalCell.value = headcountDefaults[col];
             personnelCell(1, col).value = members.length;   // 현재원
 
             const area = document.getElementById('acc-' + (col + 1));
             const manual = area ? area.value.trim() : '';
             if (force && manual) {
-                // 수기로 적은 사고내용은 그대로 두고, 아직 적혀 있지 않은 사람만 뒤에 추가
                 const added = lines.filter(l => !manual.includes(l.name));
                 area.value = manual + (added.length ? '\n' + added.map(l => l.text).join('\n') : '');
                 personnelCell(3, col).value = (parseFloat(personnelCell(3, col).value) || 0) + added.length;
@@ -1780,12 +1905,53 @@
 
         [0, 1, 3, 4].forEach(r => calcRowTotal(personnelCell(r, 0)));
         recomputeWorkingRow();
-        if (status) { status.textContent = '✅ 연차 데이터 반영됨 (' + date + ')' + (keptTeams ? ' · 수기 입력 ' + keptTeams + '개 팀은 유지하고 빠진 사람만 추가' : ''); status.style.color = '#059669'; }
+        if (status) {
+            status.textContent = '✅ 연차 데이터 반영됨 (' + date + ')' + (keptTeams ? ' · 수기 입력 ' + keptTeams + '개 팀은 유지하고 빠진 사람만 추가' : '');
+            status.style.color = '#059669';
+        }
+        if (force) {
+            flushPersonnelAutoSave();
+        }
     }
 
-    // ===== 인원 현황 저장/불러오기: 구글 시트 + Firestore (Firestore에 오류가 나면 구글 시트만 사용) =====
-    let fsDisabled = false;          // Firestore 오류가 한 번 나면 이번 접속 동안 Firestore는 쓰지 않음
-    let lastSheetSavedAt = 0;        // 구글 시트에서 불러온 인원 현황의 저장 시각
+    // ===== 수기 입력 시 즉시 자동 저장 (디바운스 + onblur 즉시 저장 + 창 닫기 전 백업) =====
+    let personnelAutoSaveTimer = null;
+    let pendingAutoSaveDate = null;
+
+    function schedulePersonnelAutoSave() {
+        const workDate = document.getElementById("work-date").value;
+        if (!workDate || fsDisabled) return;
+
+        pendingAutoSaveDate = workDate;
+        setLinkStatus('⏳ 변경사항 자동 저장 대기 중...', '#64748b');
+        clearTimeout(personnelAutoSaveTimer);
+        personnelAutoSaveTimer = setTimeout(() => {
+            flushPersonnelAutoSave();
+        }, 600);
+    }
+
+    function flushPersonnelAutoSave() {
+        const workDate = document.getElementById("work-date").value;
+        if (!workDate || fsDisabled) return;
+        if (!pendingAutoSaveDate && !personnelAutoSaveTimer) return;
+
+        clearTimeout(personnelAutoSaveTimer);
+        personnelAutoSaveTimer = null;
+        pendingAutoSaveDate = null;
+        const meta = buildPersonnelMeta();
+        savePersonnelToFirestore(workDate, meta, true);
+    }
+
+    // 브라우저 창을 닫거나 새로고침하기 직전 대기 중인 입력 내용을 즉시 저장
+    window.addEventListener('beforeunload', () => {
+        if (pendingAutoSaveDate) {
+            flushPersonnelAutoSave();
+        }
+    });
+
+    // ===== 인원 현황 저장/불러오기: 구글 시트 + Firestore =====
+    let fsDisabled = false;
+    let lastSheetSavedAt = 0;
     let suppressWorkRecalc = false;
 
     function setLinkStatus(msg, color) {
@@ -1794,15 +1960,20 @@
     }
     function reportDocRef(date) { return firebase.firestore().collection('annual_system').doc('report_' + date); }
 
-    async function savePersonnelToFirestore(date, meta) {
+    async function savePersonnelToFirestore(date, meta, isAuto = false) {
         if (fsDisabled) return;
         try {
             await reportDocRef(date).set({ workDate: date, savedAt: meta.savedAt, logContent: JSON.stringify(meta) });
-            setLinkStatus('✅ 인원 현황이 Firestore에도 저장되었습니다', '#059669');
+            if (isAuto) {
+                const nowTime = new Date().toTimeString().slice(0, 5);
+                setLinkStatus(`☁️ 입력 내용 자동 저장 완료 (${nowTime})`, '#059669');
+            } else {
+                setLinkStatus('✅ 인원 및 순환근무자 현황이 저장되었습니다', '#059669');
+            }
         } catch (e) {
             fsDisabled = true;
             console.error('Firestore 저장 실패:', e);
-            setLinkStatus('⚠️ Firestore 저장 오류 → 구글 시트로만 저장·불러오기 합니다 (' + (e.code || e.message || '오류') + ')', '#dc2626');
+            setLinkStatus('⚠️ 자동 저장 오류 → 상단 [저장] 버튼을 이용해 주세요 (' + (e.code || e.message || '오류') + ')', '#dc2626');
         }
     }
 
@@ -1813,6 +1984,7 @@
             if (a) { a.value = ""; autoResizeTextarea(a); }
         }
         document.querySelectorAll("#table-rotation tbody input").forEach(inp => inp.value = "");
+        applySignaturesData(null);
     }
 
     // 구글 시트 데이터를 먼저 보여 준 뒤, Firestore에 더 최근에 저장된 값이 있으면 그것으로 교체
@@ -1820,13 +1992,13 @@
         if (!fsDisabled) {
             try {
                 const snap = await reportDocRef(date).get();
-                if (document.getElementById('work-date').value !== date) return;   // 그 사이 날짜가 바뀐 경우
+                if (document.getElementById('work-date').value !== date) return;
                 if (snap.exists) {
                     const d = snap.data() || {};
                     if (d.logContent && (Number(d.savedAt) || 0) >= lastSheetSavedAt) {
                         clearPersonnelFields();
                         applyPersonnelMeta(JSON.parse(d.logContent));
-                        setLinkStatus('☁️ Firestore에 저장된 인원 현황을 불러왔습니다', '#059669');
+                        setLinkStatus('☁️ 저장된 인원·순환근무자 현황을 불러왔습니다', '#059669');
                     }
                 }
             } catch (e) {
@@ -1842,11 +2014,11 @@
     }
 
     // ===== 팀 업무내용 보호: 불러온 시점 값을 기준으로 저장, 팀 계정 로그인 시 이 화면에서 수정 불가 =====
-    let teamBaseline = null;      // { 팀키: { log, photos } } - 불러온 직후의 값 (수정 여부 판단용)
+    let teamBaseline = null;
 
     function snapshotTeamBaseline() {
         const base = {};
-        ["jumgeom", "jeongi", "seolbi", "naengdong", "unsong", "geonchuk", "mihwa"].forEach(team => {
+        ALL_TEAM_KEYS.forEach(team => {
             const ta = document.getElementById(`log-${team}`);
             const photos = [];
             for (let i = 1; i <= 3; i++) {
@@ -1858,8 +2030,6 @@
         teamBaseline = base;
     }
 
-    // 통합 포털에서 팀 계정(예: 소방팀)으로 로그인하면 ?team=팀이름 이 전달됨
-    const PORTAL_TEAM = (() => { try { return (new URLSearchParams(location.search).get('team') || '').trim(); } catch (e) { return ''; } })();
     let lockNoticeAt = 0;
     function showLockNotice() {
         const now = Date.now();
@@ -1869,14 +2039,12 @@
     }
     if (PORTAL_TEAM) {
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('textarea[id^="log-"]').forEach(t => { t.readOnly = true; });   // 팀 업무일지 칸만 (사고내용 acc-N 은 제외)
+            document.querySelectorAll('textarea[id^="log-"]').forEach(t => { t.readOnly = true; });
         });
-        // 업무일지 칸을 클릭해도 커서가 들어가지 않고 안내만 표시
         document.addEventListener('mousedown', e => {
             const ta = e.target.closest && e.target.closest('textarea');
-            if (ta && /^log-/.test(ta.id)) { e.preventDefault(); showLockNotice(); }   // 팀 업무일지 칸만 잠금
+            if (ta && /^log-/.test(ta.id)) { e.preventDefault(); showLockNotice(); }
         }, true);
-        // 사진 추가·삭제 버튼도 같은 안내
         document.addEventListener('click', e => {
             if (e.target.closest && e.target.closest('.btn-photo, .photo-card-box, .photo-delete-btn')) {
                 e.preventDefault(); e.stopPropagation(); showLockNotice();
