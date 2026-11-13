@@ -1646,7 +1646,7 @@
 
     function leaveLabel(type) {
     type = String(type || '');
-    if (type.includes('교육반차')) return '교육반차';
+    if (type.includes('교육') && type.includes('반차')) return '교육반차';
     if (type.includes('반차')) return '반차';
     return type.replace(/휴가$/, '') || '휴가';
 }
